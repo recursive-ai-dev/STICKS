@@ -1,0 +1,122 @@
+[
+  {
+    "name": "desert",
+    "label": "Desert Classic",
+    "metadata": {
+      "era": "Classic Frontier",
+      "style": "Sunlit Desert Trails",
+      "genre": "Traditional Western",
+      "description": "Warm midday palette capturing dusty main streets, denim blues, and brass badges polished by the sun."
+    },
+    "line": "#2b2b2b",
+    "skin": "#f0c7a1",
+    "denim": "#2c5aa0",
+    "leather": "#7a4b2a",
+    "bandana": "#d12c2c",
+    "poncho1": "#8a3f2d",
+    "poncho2": "#d9a066",
+    "hat": "#4f3a28",
+    "spur": "#b7b7b7",
+    "badge": "#d7c42b"
+  },
+  {
+    "name": "dusk",
+    "label": "Twilight Range",
+    "metadata": {
+      "era": "Late Frontier",
+      "style": "Dusk-lit Outposts",
+      "genre": "Dramatic Western",
+      "description": "Muted reds and twilight blues designed for storytelling at campfires and tense showdowns at sundown."
+    },
+    "line": "#202020",
+    "skin": "#e8b389",
+    "denim": "#244a7b",
+    "leather": "#5f3a20",
+    "bandana": "#9e2b50",
+    "poncho1": "#6c2e3b",
+    "poncho2": "#b97d43",
+    "hat": "#3b2b1f",
+    "spur": "#c3c3c3",
+    "badge": "#f0d84a"
+  },
+  {
+    "name": "sagebrush",
+    "label": "Sagebrush Patrol",
+    "metadata": {
+      "era": "Ranger Frontier",
+      "style": "Dusty Trail Patrols",
+      "genre": "Adventure Western",
+      "description": "Sage greens and sandy browns tuned for law keepers roaming windswept mesas and canyon passes."
+    },
+    "line": "#262626",
+    "skin": "#f3c49a",
+    "denim": "#1f3f6a",
+    "leather": "#6d4729",
+    "bandana": "#2b7a78",
+    "poncho1": "#5a3a1d",
+    "poncho2": "#9c7b4f",
+    "hat": "#3a2b1a",
+    "spur": "#d0d0d0",
+    "badge": "#e7d14a"
+  },
+  {
+    "name": "frontier_noir",
+    "label": "Frontier Noir",
+    "metadata": {
+      "era": "Industrial Twilight",
+      "style": "Gaslamp Western",
+      "genre": "Noir Thriller",
+      "description": "Smoky indigos and tarnished brass evoking rain-slicked boardwalks, detective tales, and lamplit alleys."
+    },
+    "line": "#161616",
+    "skin": "#d2b8a4",
+    "denim": "#1e3a58",
+    "leather": "#3d2c22",
+    "bandana": "#5d1f2a",
+    "poncho1": "#2f2f35",
+    "poncho2": "#554535",
+    "hat": "#1f1a17",
+    "spur": "#8f8f8f",
+    "badge": "#c0a95a"
+  },
+  {
+    "name": "prairie_dawn",
+    "label": "Prairie Dawn",
+    "metadata": {
+      "era": "High Noon Revival",
+      "style": "Vivid Golden Age",
+      "genre": "Heroic Western",
+      "description": "Sun-drenched golds and bold denim blues crafted for triumphant rides into optimistic frontier towns."
+    },
+    "line": "#2e2620",
+    "skin": "#f5c8a6",
+    "denim": "#3f6cae",
+    "leather": "#8b5a2b",
+    "bandana": "#e85d3b",
+    "poncho1": "#d57b3b",
+    "poncho2": "#f0c060",
+    "hat": "#6b452d",
+    "spur": "#cfc4a5",
+    "badge": "#f8e07c"
+  },
+  {
+    "name": "mythic_dust",
+    "label": "Mythic Dust",
+    "metadata": {
+      "era": "Arcane Frontier",
+      "style": "Enchanted Desert",
+      "genre": "Fantasy Western",
+      "description": "Ethereal violets and shimmering gold hint at spellbound deserts where mystics ride with ghostly allies."
+    },
+    "line": "#2b1f28",
+    "skin": "#f1bfa9",
+    "denim": "#4b3f78",
+    "leather": "#6e3b4b",
+    "bandana": "#a1326c",
+    "poncho1": "#5b2f5f",
+    "poncho2": "#c485b8",
+    "hat": "#3c253f",
+    "spur": "#dad0e8",
+    "badge": "#f0c95f"
+  }
+]

@@ -1,0 +1,51 @@
+{
+    "name": "wave",
+    "frameCount": 4,
+    "frames": [
+        {
+            "frame": 0,
+            "bodyParts": {
+                "rightArm": {"angle": -90, "length": 18, "position": "up"},
+                "leftArm": {"angle": 0, "length": 18, "position": "down"},
+                "rightLeg": {"angle": 0, "length": 20, "position": "neutral"},
+                "leftLeg": {"angle": 0, "length": 20, "position": "neutral"},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 5}
+            }
+        },
+        {
+            "frame": 1,
+            "bodyParts": {
+                "rightArm": {"angle": -70, "length": 18, "position": "wave"},
+                "leftArm": {"angle": 0, "length": 18, "position": "down"},
+                "rightLeg": {"angle": 0, "length": 20, "position": "neutral"},
+                "leftLeg": {"angle": 0, "length": 20, "position": "neutral"},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": -5}
+            }
+        },
+        {
+            "frame": 2,
+            "bodyParts": {
+                "rightArm": {"angle": -90, "length": 18, "position": "up"},
+                "leftArm": {"angle": 0, "length": 18, "position": "down"},
+                "rightLeg": {"angle": 0, "length": 20, "position": "neutral"},
+                "leftLeg": {"angle": 0, "length": 20, "position": "neutral"},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 5}
+            }
+        },
+        {
+            "frame": 3,
+            "bodyParts": {
+                "rightArm": {"angle": -110, "length": 18, "position": "wave"},
+                "leftArm": {"angle": 0, "length": 18, "position": "down"},
+                "rightLeg": {"angle": 0, "length": 20, "position": "neutral"},
+                "leftLeg": {"angle": 0, "length": 20, "position": "neutral"},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        }
+    ]
+}
+

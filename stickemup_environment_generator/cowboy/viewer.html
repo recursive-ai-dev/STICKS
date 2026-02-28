@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cowboy Environment Viewer</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f0e6d2;
+            color: #4a2a0a;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid #4a2a0a;
+            padding-bottom: 10px;
+        }
+        #gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .item {
+            border: 2px solid #4a2a0a;
+            background-color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+        }
+        p {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cowboy Environment Viewer</h1>
+    <div id="gallery"></div>
+
+    <script>
+        const animatedFiles = [
+    "campfire_0.png",
+    "campfire_1.png",
+    "campfire_2.png",
+    "campfire_3.png",
+    "tumbleweed_0.png",
+    "tumbleweed_1.png",
+    "tumbleweed_2.png",
+    "tumbleweed_3.png"
+]
+const staticFiles = [
+    "cactus_0_0.png",
+    "cactus_1_0.png",
+    "cactus_2_0.png",
+    "cactus_3_0.png",
+    "campfire_0_0.png",
+    "campfire_0_1.png",
+    "campfire_0_2.png",
+    "campfire_0_3.png",
+    "campfire_0_4.png",
+    "campfire_0_5.png",
+    "campfire_1_0.png",
+    "campfire_1_1.png",
+    "campfire_1_2.png",
+    "campfire_1_3.png",
+    "campfire_1_4.png",
+    "campfire_1_5.png",
+    "campfire_2_0.png",
+    "campfire_2_1.png",
+    "campfire_2_2.png",
+    "campfire_2_3.png",
+    "campfire_2_4.png",
+    "campfire_2_5.png",
+    "campfire_3_0.png",
+    "campfire_3_1.png",
+    "campfire_3_2.png",
+    "campfire_3_3.png",
+    "campfire_3_4.png",
+    "campfire_3_5.png",
+    "fence_0_0.png",
+    "fence_1_0.png",
+    "fence_2_0.png",
+    "fence_3_0.png",
+    "general_store_0_0.png",
+    "general_store_1_0.png",
+    "general_store_2_0.png",
+    "general_store_3_0.png",
+    "mountain_0_0.png",
+    "mountain_1_0.png",
+    "mountain_2_0.png",
+    "mountain_3_0.png",
+    "rock_0_0.png",
+    "rock_1_0.png",
+    "rock_2_0.png",
+    "rock_3_0.png",
+    "saloon_0_0.png",
+    "saloon_1_0.png",
+    "saloon_2_0.png",
+    "saloon_3_0.png",
+    "sheriff_office_0_0.png",
+    "sheriff_office_1_0.png",
+    "sheriff_office_2_0.png",
+    "sheriff_office_3_0.png",
+    "sign_0_0.png",
+    "sign_1_0.png",
+    "sign_2_0.png",
+    "sign_3_0.png",
+    "tumbleweed_0_0.png",
+    "tumbleweed_0_1.png",
+    "tumbleweed_0_2.png",
+    "tumbleweed_0_3.png",
+    "tumbleweed_0_4.png",
+    "tumbleweed_0_5.png",
+    "tumbleweed_1_0.png",
+    "tumbleweed_1_1.png",
+    "tumbleweed_1_2.png",
+    "tumbleweed_1_3.png",
+    "tumbleweed_1_4.png",
+    "tumbleweed_1_5.png",
+    "tumbleweed_2_0.png",
+    "tumbleweed_2_1.png",
+    "tumbleweed_2_2.png",
+    "tumbleweed_2_3.png",
+    "tumbleweed_2_4.png",
+    "tumbleweed_2_5.png",
+    "tumbleweed_3_0.png",
+    "tumbleweed_3_1.png",
+    "tumbleweed_3_2.png",
+    "tumbleweed_3_3.png",
+    "tumbleweed_3_4.png",
+    "tumbleweed_3_5.png",
+    "wagon_0_0.png",
+    "wagon_1_0.png",
+    "wagon_2_0.png",
+    "wagon_3_0.png",
+    "well_0_0.png",
+    "well_1_0.png",
+    "well_2_0.png",
+    "well_3_0.png"
+]
+    </script>
+    <script>
+        function displayFiles() {
+            const gallery = document.getElementById('gallery');
+            
+            const animatedIds = new Set(animatedFiles.map(file => file.replace('.png', '')));
+
+            animatedFiles.forEach(file => {
+                createImageElement('cowboy_apng', file, gallery);
+            });
+
+            staticFiles.forEach(file => {
+                if (file.endsWith('.png')) {
+                    const staticId = file.replace(/_\d+\.png$/, '');
+                    if (!animatedIds.has(staticId)) {
+                        createImageElement('cowboy_environment', file, gallery);
+                    }
+                }
+            });
+        }
+
+        function createImageElement(directory, file, gallery) {
+            const item = document.createElement('div');
+            item.className = 'item';
+
+            const img = document.createElement('img');
+            img.src = `${directory}/${file}`;
+            img.alt = file;
+
+            const p = document.createElement('p');
+            p.textContent = file;
+
+            item.appendChild(img);
+            item.appendChild(p);
+            gallery.appendChild(item);
+        }
+
+        document.addEventListener('DOMContentLoaded', displayFiles);
+    </script>
+</body>
+</html>

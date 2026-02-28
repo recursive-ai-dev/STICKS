@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cowboy Environment Viewer</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f0e6d2;
+            color: #4a2a0a;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid #4a2a0a;
+            padding-bottom: 10px;
+        }
+        #gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .item {
+            border: 2px solid #4a2a0a;
+            background-color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+        }
+        p {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cowboy Environment Viewer</h1>
+    <div id="gallery"></div>
+
+    <script>
+        // FILE_LIST_PLACEHOLDER
+    </script>
+    <script>
+        function displayFiles() {
+            const gallery = document.getElementById('gallery');
+            
+            const animatedIds = new Set(animatedFiles.map(file => file.replace('.png', '')));
+
+            animatedFiles.forEach(file => {
+                createImageElement('cowboy_apng', file, gallery);
+            });
+
+            staticFiles.forEach(file => {
+                if (file.endsWith('.png')) {
+                    const staticId = file.replace(/_\d+\.png$/, '');
+                    if (!animatedIds.has(staticId)) {
+                        createImageElement('cowboy_environment', file, gallery);
+                    }
+                }
+            });
+        }
+
+        function createImageElement(directory, file, gallery) {
+            const item = document.createElement('div');
+            item.className = 'item';
+
+            const img = document.createElement('img');
+            img.src = `${directory}/${file}`;
+            img.alt = file;
+
+            const p = document.createElement('p');
+            p.textContent = file;
+
+            item.appendChild(img);
+            item.appendChild(p);
+            gallery.appendChild(item);
+        }
+
+        document.addEventListener('DOMContentLoaded', displayFiles);
+    </script>
+</body>
+</html>

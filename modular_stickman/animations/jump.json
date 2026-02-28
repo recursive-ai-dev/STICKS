@@ -1,0 +1,95 @@
+
+{
+    "name": "jump",
+    "frameCount": 8,
+    "frames": [
+        {
+            "frame": 0,
+            "bodyParts": {
+                "rightArm": {"angle": -45, "length": 18},
+                "leftArm": {"angle": -45, "length": 18},
+                "rightLeg": {"angle": -45, "length": 20},
+                "leftLeg": {"angle": -45, "length": 20},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        },
+        {
+            "frame": 1,
+            "bodyParts": {
+                "rightArm": {"angle": -90, "length": 18},
+                "leftArm": {"angle": -90, "length": 18},
+                "rightLeg": {"angle": -90, "length": 20},
+                "leftLeg": {"angle": -90, "length": 20},
+                "body": {"verticalOffset": 10, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        },
+        {
+            "frame": 2,
+            "bodyParts": {
+                "rightArm": {"angle": -135, "length": 18},
+                "leftArm": {"angle": -135, "length": 18},
+                "rightLeg": {"angle": -135, "length": 20},
+                "leftLeg": {"angle": -135, "length": 20},
+                "body": {"verticalOffset": 20, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        },
+        {
+            "frame": 3,
+            "bodyParts": {
+                "rightArm": {"angle": -180, "length": 18},
+                "leftArm": {"angle": -180, "length": 18},
+                "rightLeg": {"angle": -180, "length": 20},
+                "leftLeg": {"angle": -180, "length": 20},
+                "body": {"verticalOffset": 30, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        },
+        {
+            "frame": 4,
+            "bodyParts": {
+                "rightArm": {"angle": -135, "length": 18},
+                "leftArm": {"angle": -135, "length": 18},
+                "rightLeg": {"angle": -135, "length": 20},
+                "leftLeg": {"angle": -135, "length": 20},
+                "body": {"verticalOffset": 20, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        },
+        {
+            "frame": 5,
+            "bodyParts": {
+                "rightArm": {"angle": -90, "length": 18},
+                "leftArm": {"angle": -90, "length": 18},
+                "rightLeg": {"angle": -90, "length": 20},
+                "leftLeg": {"angle": -90, "length": 20},
+                "body": {"verticalOffset": 10, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        },
+        {
+            "frame": 6,
+            "bodyParts": {
+                "rightArm": {"angle": -45, "length": 18},
+                "leftArm": {"angle": -45, "length": 18},
+                "rightLeg": {"angle": -45, "length": 20},
+                "leftLeg": {"angle": -45, "length": 20},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        },
+        {
+            "frame": 7,
+            "bodyParts": {
+                "rightArm": {"angle": 0, "length": 18},
+                "leftArm": {"angle": 0, "length": 18},
+                "rightLeg": {"angle": 0, "length": 20},
+                "leftLeg": {"angle": 0, "length": 20},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        }
+    ]
+}

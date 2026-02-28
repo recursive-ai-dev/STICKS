@@ -1,0 +1,73 @@
+
+{
+    "name": "walk",
+    "frameCount": 6,
+    "frames": [
+        {
+            "frame": 0,
+            "bodyParts": {
+                "rightArm": {"angle": 20, "length": 18},
+                "leftArm": {"angle": -20, "length": 18},
+                "rightLeg": {"angle": -30, "length": 20},
+                "leftLeg": {"angle": 30, "length": 20},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        },
+        {
+            "frame": 1,
+            "bodyParts": {
+                "rightArm": {"angle": 10, "length": 18},
+                "leftArm": {"angle": -10, "length": 18},
+                "rightLeg": {"angle": -15, "length": 20},
+                "leftLeg": {"angle": 15, "length": 20},
+                "body": {"verticalOffset": -2, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        },
+        {
+            "frame": 2,
+            "bodyParts": {
+                "rightArm": {"angle": 0, "length": 18},
+                "leftArm": {"angle": 0, "length": 18},
+                "rightLeg": {"angle": 0, "length": 20},
+                "leftLeg": {"angle": 0, "length": 20},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        },
+        {
+            "frame": 3,
+            "bodyParts": {
+                "rightArm": {"angle": -20, "length": 18},
+                "leftArm": {"angle": 20, "length": 18},
+                "rightLeg": {"angle": 30, "length": 20},
+                "leftLeg": {"angle": -30, "length": 20},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        },
+        {
+            "frame": 4,
+            "bodyParts": {
+                "rightArm": {"angle": -10, "length": 18},
+                "leftArm": {"angle": 10, "length": 18},
+                "rightLeg": {"angle": 15, "length": 20},
+                "leftLeg": {"angle": -15, "length": 20},
+                "body": {"verticalOffset": -2, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        },
+        {
+            "frame": 5,
+            "bodyParts": {
+                "rightArm": {"angle": 0, "length": 18},
+                "leftArm": {"angle": 0, "length": 18},
+                "rightLeg": {"angle": 0, "length": 20},
+                "leftLeg": {"angle": 0, "length": 20},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 0}
+            }
+        }
+    ]
+}

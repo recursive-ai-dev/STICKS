@@ -1,0 +1,16 @@
+{
+  "id": "rock_3",
+  "type": "rock",
+  "palette": "desert",
+  "animated": false,
+  "frames": {
+    "0": {
+      "x": 0,
+      "y": 0,
+      "w": 200,
+      "h": 200
+    }
+  },
+  "frameCount": 1,
+  "size": 200
+}

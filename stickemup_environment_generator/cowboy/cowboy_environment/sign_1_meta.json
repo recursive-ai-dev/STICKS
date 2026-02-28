@@ -1,0 +1,16 @@
+{
+  "id": "sign_1",
+  "type": "sign",
+  "palette": "dusk",
+  "animated": false,
+  "frames": {
+    "0": {
+      "x": 0,
+      "y": 0,
+      "w": 200,
+      "h": 200
+    }
+  },
+  "frameCount": 1,
+  "size": 200
+}

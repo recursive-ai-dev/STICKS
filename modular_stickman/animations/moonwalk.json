@@ -1,0 +1,414 @@
+{
+    "name": "moonwalk",
+    "frameCount": 12,
+    "frames": [
+        {
+            "frame": 0,
+            "bodyParts": {
+                "rightArm": {
+                    "angle": -10.406782734768464,
+                    "length": 18
+                },
+                "leftArm": {
+                    "angle": 8.221604725719807,
+                    "length": 18
+                },
+                "rightLeg": {
+                    "angle": 19.79887635452493,
+                    "length": 20,
+                    "phase": "stance",
+                    "footOffsetX": 7.2,
+                    "footOffsetY": 20
+                },
+                "leftLeg": {
+                    "angle": -15.642246457208728,
+                    "length": 20,
+                    "phase": "swing",
+                    "footOffsetX": -5.6,
+                    "footOffsetY": 20
+                },
+                "body": {
+                    "verticalOffset": 0,
+                    "lean": -7
+                },
+                "head": {
+                    "tilt": 4.330127018922193
+                }
+            }
+        },
+        {
+            "frame": 1,
+            "bodyParts": {
+                "rightArm": {
+                    "angle": -9.796694496179386,
+                    "length": 18
+                },
+                "leftArm": {
+                    "angle": 7.784659459725708,
+                    "length": 18
+                },
+                "rightLeg": {
+                    "angle": 18.638425136537602,
+                    "length": 19.5,
+                    "phase": "stance",
+                    "footOffsetX": 6.745679012345679,
+                    "footOffsetY": 20
+                },
+                "leftLeg": {
+                    "angle": -14.811032194823513,
+                    "length": 19.913323230633726,
+                    "phase": "swing",
+                    "footOffsetX": -5.088888888888889,
+                    "footOffsetY": 19.24566595144393
+                },
+                "body": {
+                    "verticalOffset": -1.299038105676658,
+                    "lean": -5.535898384862246
+                },
+                "head": {
+                    "tilt": 5.629165124598852
+                }
+            }
+        },
+        {
+            "frame": 2,
+            "bodyParts": {
+                "rightArm": {
+                    "angle": -6.684141975229256,
+                    "length": 18
+                },
+                "leftArm": {
+                    "angle": 5.601696557637091,
+                    "length": 18
+                },
+                "rightLeg": {
+                    "angle": 12.717408005520317,
+                    "length": 19.133974596215563,
+                    "phase": "stance",
+                    "footOffsetX": 4.51358024691358,
+                    "footOffsetY": 20
+                },
+                "leftLeg": {
+                    "angle": -10.658069792879145,
+                    "length": 17.37304400420294,
+                    "phase": "swing",
+                    "footOffsetX": -2.577777777777779,
+                    "footOffsetY": 13.697440733043724
+                },
+                "body": {
+                    "verticalOffset": -1.299038105676658,
+                    "lean": -5
+                },
+                "head": {
+                    "tilt": -1.2990381056766571
+                }
+            }
+        },
+        {
+            "frame": 3,
+            "bodyParts": {
+                "rightArm": {
+                    "angle": -1.2038671878714697,
+                    "length": 18
+                },
+                "leftArm": {
+                    "angle": -6.766979451506719,
+                    "length": 18
+                },
+                "rightLeg": {
+                    "angle": 2.290610042638529,
+                    "length": 19,
+                    "phase": "stance",
+                    "footOffsetX": 0.7999999999999998,
+                    "footOffsetY": 20
+                },
+                "leftLeg": {
+                    "angle": 12.87500155961248,
+                    "length": 13,
+                    "phase": "swing",
+                    "footOffsetX": 1.6000000000000005,
+                    "footOffsetY": 7
+                },
+                "body": {
+                    "verticalOffset": -1.8369701987210297e-16,
+                    "lean": -5.535898384862245
+                },
+                "head": {
+                    "tilt": -4.330127018922193
+                }
+            }
+        },
+        {
+            "frame": 4,
+            "bodyParts": {
+                "rightArm": {
+                    "angle": 4.35622840876743,
+                    "length": 18
+                },
+                "leftArm": {
+                    "angle": -12.021873874459747,
+                    "length": 18
+                },
+                "rightLeg": {
+                    "angle": -8.288486966651922,
+                    "length": 19.133974596215563,
+                    "phase": "stance",
+                    "footOffsetX": -2.9135802469135816,
+                    "footOffsetY": 20
+                },
+                "leftLeg": {
+                    "angle": 22.870717717739915,
+                    "length": 17.37304400420293,
+                    "phase": "swing",
+                    "footOffsetX": 5.777777777777777,
+                    "footOffsetY": 13.697440733043711
+                },
+                "body": {
+                    "verticalOffset": 1.2990381056766578,
+                    "lean": -6.999999999999998
+                },
+                "head": {
+                    "tilt": -3.0310889132455365
+                }
+            }
+        },
+        {
+            "frame": 5,
+            "bodyParts": {
+                "rightArm": {
+                    "angle": 7.583500590983438,
+                    "length": 18
+                },
+                "leftArm": {
+                    "angle": -12.24811637018771,
+                    "length": 18
+                },
+                "rightLeg": {
+                    "angle": -14.42835554495561,
+                    "length": 19.5,
+                    "phase": "stance",
+                    "footOffsetX": -5.145679012345677,
+                    "footOffsetY": 20
+                },
+                "leftLeg": {
+                    "angle": 23.30099361587478,
+                    "length": 19.913323230633722,
+                    "phase": "swing",
+                    "footOffsetX": 8.288888888888875,
+                    "footOffsetY": 19.245665951443907
+                },
+                "body": {
+                    "verticalOffset": 1.299038105676658,
+                    "lean": -9
+                },
+                "head": {
+                    "tilt": -1.2990381056766593
+                }
+            }
+        },
+        {
+            "frame": 6,
+            "bodyParts": {
+                "rightArm": {
+                    "angle": 8.221604725719807,
+                    "length": 18
+                },
+                "leftArm": {
+                    "angle": -10.406782734768464,
+                    "length": 18
+                },
+                "rightLeg": {
+                    "angle": -15.642246457208728,
+                    "length": 20,
+                    "phase": "swing",
+                    "footOffsetX": -5.6,
+                    "footOffsetY": 20
+                },
+                "leftLeg": {
+                    "angle": 19.79887635452493,
+                    "length": 20,
+                    "phase": "stance",
+                    "footOffsetX": 7.2,
+                    "footOffsetY": 20
+                },
+                "body": {
+                    "verticalOffset": 3.6739403974420594e-16,
+                    "lean": -10.999999999999998
+                },
+                "head": {
+                    "tilt": 4.330127018922191
+                }
+            }
+        },
+        {
+            "frame": 7,
+            "bodyParts": {
+                "rightArm": {
+                    "angle": 7.784659459725708,
+                    "length": 18
+                },
+                "leftArm": {
+                    "angle": -9.796694496179386,
+                    "length": 18
+                },
+                "rightLeg": {
+                    "angle": -14.811032194823513,
+                    "length": 19.913323230633726,
+                    "phase": "swing",
+                    "footOffsetX": -5.088888888888888,
+                    "footOffsetY": 19.245665951443925
+                },
+                "leftLeg": {
+                    "angle": 18.638425136537602,
+                    "length": 19.5,
+                    "phase": "stance",
+                    "footOffsetX": 6.745679012345678,
+                    "footOffsetY": 20
+                },
+                "body": {
+                    "verticalOffset": -1.2990381056766582,
+                    "lean": -12.464101615137755
+                },
+                "head": {
+                    "tilt": 5.629165124598849
+                }
+            }
+        },
+        {
+            "frame": 8,
+            "bodyParts": {
+                "rightArm": {
+                    "angle": 5.601696557637091,
+                    "length": 18
+                },
+                "leftArm": {
+                    "angle": -6.684141975229257,
+                    "length": 18
+                },
+                "rightLeg": {
+                    "angle": -10.658069792879145,
+                    "length": 17.37304400420294,
+                    "phase": "swing",
+                    "footOffsetX": -2.577777777777779,
+                    "footOffsetY": 13.697440733043724
+                },
+                "leftLeg": {
+                    "angle": 12.71740800552032,
+                    "length": 19.133974596215563,
+                    "phase": "stance",
+                    "footOffsetX": 4.513580246913581,
+                    "footOffsetY": 20
+                },
+                "body": {
+                    "verticalOffset": -1.2990381056766587,
+                    "lean": -13
+                },
+                "head": {
+                    "tilt": -1.299038105676655
+                }
+            }
+        },
+        {
+            "frame": 9,
+            "bodyParts": {
+                "rightArm": {
+                    "angle": -6.766979451506719,
+                    "length": 18
+                },
+                "leftArm": {
+                    "angle": -1.2038671878714697,
+                    "length": 18
+                },
+                "rightLeg": {
+                    "angle": 12.87500155961248,
+                    "length": 13,
+                    "phase": "swing",
+                    "footOffsetX": 1.6000000000000005,
+                    "footOffsetY": 7
+                },
+                "leftLeg": {
+                    "angle": 2.290610042638529,
+                    "length": 19,
+                    "phase": "stance",
+                    "footOffsetX": 0.7999999999999998,
+                    "footOffsetY": 20
+                },
+                "body": {
+                    "verticalOffset": -5.51091059616309e-16,
+                    "lean": -12.464101615137753
+                },
+                "head": {
+                    "tilt": -4.3301270189221945
+                }
+            }
+        },
+        {
+            "frame": 10,
+            "bodyParts": {
+                "rightArm": {
+                    "angle": -12.021873874459738,
+                    "length": 18
+                },
+                "leftArm": {
+                    "angle": 4.356228408767443,
+                    "length": 18
+                },
+                "rightLeg": {
+                    "angle": 22.8707177177399,
+                    "length": 17.37304400420294,
+                    "phase": "swing",
+                    "footOffsetX": 5.777777777777779,
+                    "footOffsetY": 13.697440733043724
+                },
+                "leftLeg": {
+                    "angle": -8.288486966651947,
+                    "length": 19.133974596215563,
+                    "phase": "stance",
+                    "footOffsetX": -2.9135802469135905,
+                    "footOffsetY": 20
+                },
+                "body": {
+                    "verticalOffset": 1.299038105676658,
+                    "lean": -10.999999999999998
+                },
+                "head": {
+                    "tilt": -3.031088913245533
+                }
+            }
+        },
+        {
+            "frame": 11,
+            "bodyParts": {
+                "rightArm": {
+                    "angle": -12.248116370187718,
+                    "length": 18
+                },
+                "leftArm": {
+                    "angle": 7.583500590983423,
+                    "length": 18
+                },
+                "rightLeg": {
+                    "angle": 23.300993615874795,
+                    "length": 19.91332323063373,
+                    "phase": "swing",
+                    "footOffsetX": 8.288888888888895,
+                    "footOffsetY": 19.24566595144394
+                },
+                "leftLeg": {
+                    "angle": -14.428355544955583,
+                    "length": 19.5,
+                    "phase": "stance",
+                    "footOffsetX": -5.145679012345668,
+                    "footOffsetY": 20
+                },
+                "body": {
+                    "verticalOffset": 1.2990381056766587,
+                    "lean": -9.000000000000002
+                },
+                "head": {
+                    "tilt": -1.299038105676659
+                }
+            }
+        }
+    ]
+}

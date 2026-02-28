@@ -1,0 +1,43 @@
+
+{
+    "name": "shoot",
+    "frameCount": 3,
+    "frames": [
+        {
+            "frame": 0,
+            "bodyParts": {
+                "rightArm": {"angle": -90, "length": 18},
+                "leftArm": {"angle": 0, "length": 18},
+                "rightLeg": {"angle": 0, "length": 20},
+                "leftLeg": {"angle": 0, "length": 20},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 0},
+                "gun": {"visible": true}
+            }
+        },
+        {
+            "frame": 1,
+            "bodyParts": {
+                "rightArm": {"angle": -95, "length": 18},
+                "leftArm": {"angle": 0, "length": 18},
+                "rightLeg": {"angle": 0, "length": 20},
+                "leftLeg": {"angle": 0, "length": 20},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 0},
+                "gun": {"visible": true}
+            }
+        },
+        {
+            "frame": 2,
+            "bodyParts": {
+                "rightArm": {"angle": -90, "length": 18},
+                "leftArm": {"angle": 0, "length": 18},
+                "rightLeg": {"angle": 0, "length": 20},
+                "leftLeg": {"angle": 0, "length": 20},
+                "body": {"verticalOffset": 0, "lean": 0},
+                "head": {"tilt": 0},
+                "gun": {"visible": true}
+            }
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+{
+  "type": "module",
+  "dependencies": {
+    "canvas": "3.1.2",
+    "matter-js": "^0.20.0",
+    "upng-js": "2.1.0"
+  },
+  "scripts": {
+    "generate:moonwalk": "node modular_stickman/procedural_animation_generator.js moonwalk",
+    "start": "npx serve . --port 8080",
+    "demo": "npx serve modular_stickman/ --port 8080"
+  }
+}

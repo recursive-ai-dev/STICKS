@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STICKS: Godfall Echoes</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0d0d33;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            color: #ffffff;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #444444;
+            box-shadow: 0 0 20px rgba(139, 69, 19, 0.5);
+            image-rendering: pixelated;
+        }
+        
+        #uiOverlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 300px;
+        }
+        
+        h1 {
+            color: #ffcc00;
+            text-align: center;
+            margin: 0 0 10px 0;
+            text-shadow: 0 0 5px #ffcc00;
+            font-size: 24px;
+        }
+        
+        .godfall-header {
+            color: #8b4513;
+            text-shadow: 0 0 10px rgba(139, 69, 19, 0.7);
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        
+        .godfall-subtitle {
+            color: #a0522d;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .controls {
+            margin-top: 10px;
+        }
+        
+        .control-item {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .key {
+            background: #333;
+            color: #ffcc00;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin: 0 5px;
+            font-family: monospace;
+        }
+        
+        .delusion-indicator {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(139, 69, 19, 0.8);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .pulse-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.3);
+            color: #ff0000;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            display: none;
+            text-shadow: 0 0 10px #ff0000;
+            z-index: 100;
+        }
+        
+        .hallucination-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.5s;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+        }
+        
+        .hallucination-active {
+            opacity: 0.3;
+        }
+        
+        /* Add some Godfall visual elements */
+        .godfall-logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 12px;
+            color: #8b4513;
+            text-shadow: 0 0 5px rgba(139, 69, 19, 0.5);
+        }
+        
+        .blood-splatter {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div id="uiOverlay">
+            <h1 class="godfall-header">STICKS: GODFALL ECHOES</h1>
+            <p class="godfall-subtitle">A Physics-Driven Stickman Chaos Game</p>
+            
+            <div class="controls">
+                <div class="control-item">
+                    <span class="key">Mouse</span> Drag to pull/throw limbs
+                </div>
+                <div class="control-item">
+                    <span class="key">Space</span> Trigger Delusion Burst
+                </div>
+                <div class="control-item">
+                    <span class="key">Q</span> / <span class="key">E</span> Cycle attachments
+                </div>
+                <div class="control-item">
+                    <span class="key">Click</span> on limbs to grab them
+                </div>
+            </div>
+            
+            <p><strong>Goal:</strong> Survive until the God's Pulse!</p>
+        </div>
+        
+        <div class="delusion-indicator" id="delusionIndicator">
+            Delusion: None
+        </div>
+        
+        <div class="pulse-indicator" id="pulseIndicator">
+            WORLD PULSE!
+        </div>
+        
+        <div class="hallucination-effect" id="hallucinationEffect"></div>
+        
+        <div class="godfall-logo">GODFALL ECHOES v1.0</div>
+    </div>
+
+    <script type="module">
+        // Import the game module
+        import { StickGame } from './modular_stickman/game.js';
+        
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create game instance
+            const game = new StickGame();
+            
+            // Update delusion indicator
+            setInterval(() => {
+                const indicator = document.getElementById('delusionIndicator');
+                if (game.physics && game.physics.stickmen.length > 0) {
+                    const stickman = game.physics.stickmen[0];
+                    if (stickman.delusionTraits.length > 0) {
+                        indicator.textContent = `Delusion: ${stickman.delusionTraits.join(', ')}`;
+                        indicator.style.display = 'block';
+                    } else {
+                        indicator.style.display = 'none';
+                    }
+                }
+            }, 1000);
+            
+            // Add event listeners for controls
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    // Show pulse indicator
+                    document.getElementById('pulseIndicator').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('pulseIndicator').style.display = 'none';
+                    }, 2000);
+                    
+                    // Add hallucination effect
+                    const effect = document.getElementById('hallucinationEffect');
+                    effect.classList.add('hallucination-active');
+                    setTimeout(() => {
+                        effect.classList.remove('hallucination-active');
+                    }, 3000);
+                    
+                    // Add blood splatter effect for impact
+                    createBloodSplatter();
+                }
+            });
+            
+            // World Pulse Events
+            game.physics.startWorldPulseTimer = function() {
+                setInterval(() => {
+                    // Trigger world pulse
+                    document.getElementById('pulseIndicator').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('pulseIndicator').style.display = 'none';
+                    }, 2000);
+                    
+                    // Intensify hallucination
+                    const effect = document.getElementById('hallucinationEffect');
+                    effect.classList.add('hallucination-active');
+                    setTimeout(() => {
+                        effect.classList.remove('hallucination-active');
+                    }, 5000);
+                    
+                    // Add multiple blood splatters
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(createBloodSplatter, i * 200);
+                    }
+                }, 60000); // 60 seconds
+            };
+            
+            game.physics.startWorldPulseTimer();
+            
+            // Helper function to create blood splatter effects
+            function createBloodSplatter() {
+                const container = document.getElementById('gameContainer');
+                const splatter = document.createElement('div');
+                splatter.className = 'blood-splatter';
+                splatter.style.left = Math.random() * 100 + '%';
+                splatter.style.top = Math.random() * 100 + '%';
+                splatter.style.width = (Math.random() * 50 + 20) + 'px';
+                splatter.style.height = (Math.random() * 50 + 20) + 'px';
+                splatter.style.background = 'radial-gradient(circle, rgba(255, 0, 0, 0.8) 0%, rgba(139, 0, 0, 0.3) 70%)';
+                splatter.style.borderRadius = '50%';
+                splatter.style.opacity = '0';
+                
+                container.appendChild(splatter);
+                
+                // Animate in
+                setTimeout(() => {
+                    splatter.style.opacity = '1';
+                }, 10);
+                
+                // Fade out
+                setTimeout(() => {
+                    splatter.style.opacity = '0';
+                    setTimeout(() => {
+                        container.removeChild(splatter);
+                    }, 300);
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>
