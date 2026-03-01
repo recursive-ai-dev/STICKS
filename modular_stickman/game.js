@@ -2,8 +2,8 @@
 // Main game entry point for STICKS: Godfall Echoes
 // Integrates physics, animation, and Godfall delusion systems
 
-import { StickmanPhysics } from './modular_stickman/physics_engine.js';
-import { loadAnimation } from './modular_stickman/animations.js';
+import { StickmanPhysics } from './physics_engine.js';
+import { loadAnimation } from './animations.js';
 
 // Game state
 class StickGame {
@@ -153,6 +153,6 @@ export { StickGame };
 // Auto-initialize if running in browser
 if (typeof window !== 'undefined' && window.document) {
   window.addEventListener('DOMContentLoaded', () => {
-    const game = new StickGame();
+    window.game = new StickGame();
   });
 }

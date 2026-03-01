@@ -3,7 +3,8 @@
 // Uses Matter.js for rigid body physics with limb detachment mechanics
 
 import { Engine, Render, World, Bodies, Body, Composite, Events, Mouse, MouseConstraint } from 'matter-js';
-import { applyAnimationFrame } from './modular_stickman/animation_renderer.js';
+import { applyAnimationFrame } from './animation_renderer.js';
+import { LimbDetachmentService } from './limb_detachment_service.js';
 
 // Physics constants
 const GRAVITY = 0.8;
@@ -54,6 +55,9 @@ class StickmanPhysics {
     this.stickmen = [];
     this.detachedLimbs = [];
     
+    // Initialize Logic Chain Services
+    this.detachmentService = new LimbDetachmentService({ threshold: LIMB_DETACH_THRESHOLD });
+
     // Input handling
     this.mouse = Mouse.create(this.canvas);
     this.mouseConstraint = MouseConstraint.create(this.engine, {
@@ -262,32 +266,30 @@ class StickmanPhysics {
   }
 
   checkLimbDetachment(limbBody, torsoBody, pair) {
-    const relativeVelocity = pair.contact.normalImpulse;
-    const speed = Math.abs(relativeVelocity);
+    const impulse = Math.abs(pair.contact.normalImpulse);
+    const limbId = limbBody.label;
     
-    // Detach limb if impact is strong enough
-    if (speed > LIMB_DETACH_THRESHOLD) {
-      const stickman = this.findStickmanByLimb(limbBody);
-      if (stickman && stickman.limbs[limbBody.label]) {
-        const limb = stickman.limbs[limbBody.label];
-        if (limb.attached) {
-          limb.attached = false;
-          
-          // Remove from stickman's limb list but keep in world
-          this.detachedLimbs.push({
-            body: limb.body,
-            stickmanId: stickman.id,
-            limbName: limbBody.label,
-            originalPosition: limb.originalPosition
-          });
-          
-          // Add visual effect for detachment
-          this.addDetachmentEffect(limb.body);
-          
-          // Trigger delusion effect based on limb type
-          this.triggerLimbDetachmentEffect(limbBody.label);
-        }
+    const stickman = this.findStickmanByLimb(limbBody);
+    if (!stickman) return;
+
+    try {
+      const result = this.detachmentService.detachLimb(stickman, limbId, impulse);
+
+      if (result.success && result.state === "DETACHED") {
+        // Atomic infra update
+        this.detachedLimbs.push({
+          body: result.limb.body,
+          stickmanId: stickman.id,
+          limbName: limbId,
+          originalPosition: result.limb.originalPosition
+        });
+
+        // Execute side effects
+        this.addDetachmentEffect(result.limb.body);
+        this.addDelusionTrait(result.sideEffects.trait);
       }
+    } catch (error) {
+      console.error(`[PhysicsEngine] Detachment failed: ${error.message}`);
     }
   }
 
