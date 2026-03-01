@@ -14,6 +14,12 @@ if (!fs.existsSync(ANIMATIONS_DIR)) {
 
 // Function to load animation data from JSON files
 function loadAnimation(animationName) {
+    // Security: Prevent path traversal by ensuring animationName doesn't contain path separators or parent directory references
+    if (typeof animationName !== 'string' || animationName.includes('..') || animationName.includes('/') || animationName.includes('\\')) {
+        console.error(`Security Warning: Invalid animation name provided: ${animationName}`);
+        return null;
+    }
+
     const animationPath = path.join(ANIMATIONS_DIR, `${animationName}.json`);
     if (fs.existsSync(animationPath)) {
         const animationData = JSON.parse(fs.readFileSync(animationPath, "utf8"));
