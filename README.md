@@ -8,22 +8,23 @@ A physics-driven stickman chaos game built on modular animation and divine delir
 
 **STICKS: Godfall Echoes** is a stickman physics chaos game that combines:
 - Realistic limb detachment physics using Matter.js
-- Procedural animation generation
-- Modular character and environment systems
-- Godfall-inspired delusion mechanics
+- Procedural animation generation and genetic optimization
+- Modular character and environment systems with Cowboy and Medieval themes
+- Godfall-inspired delusion mechanics and lore integration
 
 ### Core Gameplay Loop
-1. **Spawn** as a modular stickman in a delusion-tainted environment
-2. **Interact** using mouse drag, Space (Delusion Burst), and Q/E (attachment cycling)
-3. **Survive** until the God's Pulse triggers world-shattering events
-4. **Die gloriously** with meme-worthy ragdoll physics
+1. **Spawn** as a modular stickman in a delusion-tainted environment.
+2. **Interact** using mouse drag to pull/throw limbs, Space for **Delusion Bursts**, and Q/E to cycle **Modular Attachments**.
+3. **Survive** until the **God's Pulse** triggers world-shattering events every 60 seconds.
+4. **Die gloriously** with meme-worthy ragdoll physics and unique delusion traits.
 
 ## 🛠️ Technical Stack
 
-- **Physics Engine**: Matter.js v0.20.0
-- **Rendering**: Canvas 2D with procedural animation system
-- **Modular System**: Character and environment generators
-- **Godfall Integration**: Delusion database and visual theming
+- **Physics Engine**: Matter.js v0.20.0 for rigid body dynamics.
+- **Logic Chain Architecture**: Deterministic game logic using structured "Logic Chains" for complex state transitions like limb detachment (see `docs/logic_chains/`).
+- **Rendering**: HTML5 Canvas 2D with a procedural animation system.
+- **Modular System**: ES Module based character and environment generators.
+- **Godfall Integration**: Automated theme application and delusion database integration.
 
 ## 📁 Project Structure
 
@@ -31,23 +32,29 @@ A physics-driven stickman chaos game built on modular animation and divine delir
 STICKS-main/
 ├── index.html                # Main landing page
 ├── modular_stickman/         # Core game components
+│   ├── animations/           # Procedural animation data (walk, moonwalk, bar_fight, etc.)
+│   ├── tests/                # Physics and logic chain tests
 │   ├── animation_renderer.js # Animation rendering system
 │   ├── animations.js         # Animation data loader
-│   ├── cowboy_modular_generator.js # Character generator
+│   ├── cowboy_modular_generator.js # Modular character generator
 │   ├── procedural_animation_generator.js # Genetic animation optimizer
-│   ├── physics_engine.js     # Matter.js physics integration
-│   ├── game.js               # Main game logic
-│   ├── demo.html             # Interactive demo
-│   └── animations/           # Generated animation JSON files
-├── godfall/                  # Godfall integration
-│   ├── apply_godfall_style.js
-│   ├── apply_godfall_theme.js
-│   ├── god_manifest_96.json
-│   ├── integrate_godfall.js
-│   └── README.md
-├── stickemup_character_generator/
-├── stickemup_environment_generator/
-└── package.json              # Dependencies and scripts
+│   ├── physics_engine.js     # Matter.js physics & collision integration
+│   ├── limb_detachment_service.js # Logic chain for limb detachment
+│   ├── game.js               # Main game loop and state management
+│   └── demo.html             # Interactive physics demo
+├── godfall/                  # Godfall integration & Lore
+│   ├── integrate_godfall.js  # Non-invasive integration helper
+│   ├── apply_godfall_style.js # Visual theme post-processor
+│   ├── god_manifest_96.json  # Delusion trait database
+│   └── README.md             # Lore manifest and world overview
+├── stickemup_character_generator/ # Character sprite generators
+│   ├── cowboy/               # Cowboy theme assets and generators
+│   └── medieval/             # Medieval theme assets and generators
+├── stickemup_environment_generator/ # Level generation systems
+├── docs/                     # Technical documentation
+│   └── logic_chains/         # Logic chain contracts and specifications
+├── package.json              # Dependencies and scripts
+└── README.md                 # This file
 ```
 
 ## 🚀 Getting Started
@@ -65,40 +72,37 @@ npm install
 ```bash
 npm run demo
 ```
+Then open your browser to `http://localhost:8080/demo.html`.
 
-Then open your browser to `http://localhost:8080/modular_stickman/demo.html`
-
-### Development Server
-```bash
-npm start
-```
-
-Open `http://localhost:8080` for the main landing page.
+### Development & Generation
+- **Start Web Server**: `npm start`
+- **Generate Moonwalk Animation**: `npm run generate:moonwalk`
+- **Integrate Godfall**: `node godfall/integrate_godfall.js list`
 
 ## 🎯 Key Features
 
 ### Physics & Limb Detachment
-- High-impact collision detection for limb detachment
-- Detached limbs can be grabbed and thrown
-- Realistic ragdoll physics with elastic deformation
+- **High-impact collisions**: Detach limbs based on velocity thresholds.
+- **Logic Chain Safety**: Atomic state transitions ensure game state integrity.
+- **Limb-Specific Delusions**: Detaching different limbs triggers unique traits:
+    - **Head**: `hallucinate_enemies_as_cows`
+    - **Arms**: `weaponized_limbs`
+    - **Legs**: `gravity_distortion`
+
+### Animation System
+- **Procedural Library**: Includes `walk`, `moonwalk`, `bar_fight`, `shoot`, `jump`, `wave`, and `algorithmic_walk`.
+- **Optimization**: Use the `procedural_animation_generator` to evolve new movement patterns.
 
 ### Delusion System
-- **Delusion Bursts**: Space key triggers temporary reality warps
-- **World Pulse Events**: Every 60 seconds, terrain fractures and delusions intensify
-- **Limb Identity**: Each limb retains metadata for unique effects
+- **Delusion Bursts**: Space key triggers temporary reality warps (inverted gravity, elasticity).
+- **World Pulse Events**: Every 60 seconds, terrain fractures and delusions intensify.
+- **Attachment Cycling**: Q/E keys cycle through modular tools like grappling hooks, gravity guns, and time dilation fields.
 
-### Modular Design
-- Character system with cowboy, medieval, and Godfall corruption themes
-- Environment generator for procedurally created levels
-- Attachment system with weapon/tool cycling (Q/E keys)
+## 🎨 Visual Style & Lore
 
-## 🎨 Visual Style
-
-Godfall-themed aesthetics:
-- Deep purples and dark blues (#0d0d33, #1a1a2e)
-- Gold accents (#ffcc00) for highlights
-- Blood red (#8b4513) for delusion effects
-- VHS glitch overlays during delusion bursts
+- **Theming**: Deep purples, gold accents, and "Godfall" corruption effects.
+- **Lore**: Set in a world existing on the body of a dying god, where madness is the only clarity.
+- **Post-Processing**: Automatic application of VHS glitches and divine "veins" to generated sprites.
 
 ## 📜 License
 
