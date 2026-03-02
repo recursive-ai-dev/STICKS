@@ -1,0 +1,12 @@
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +86
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 86, reused 0, downloaded 86, added 22
+Progress: resolved 86, reused 0, downloaded 86, added 86, done
+ INFO  Accepting connections at http://localhost:8080
+ HTTP  3/2/2026 4:06:37 PM ::1 GET /modular_stickman/demo.html
+ HTTP  3/2/2026 4:06:37 PM ::1 Returned 301 in 352 ms
+ HTTP  3/2/2026 4:06:38 PM ::1 GET /modular_stickman/demo
+ HTTP  3/2/2026 4:06:38 PM ::1 Returned 200 in 9 ms
+ HTTP  3/2/2026 4:06:38 PM ::1 GET /modular_stickman/game.js
+ HTTP  3/2/2026 4:06:38 PM ::1 Returned 200 in 3 ms
