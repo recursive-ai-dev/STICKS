@@ -23,70 +23,87 @@ export class InvalidLimbError extends Error {
 
 export class LimbDetachmentService extends LogicChainBase {
   constructor(config = {}) {
-    super("Limb Detachment", "1.3", config);
+    super("Limb Detachment", "1.4", config);
     this.threshold = config.threshold || 15;
   }
 
   /**
    * Orchestrates the limb detachment logic chain.
+   * Enforces the Observability Contract.
    */
   detachLimb(stickman, limbId, impulse, correlationId = null) {
     const cid = this.getCorrelationId(correlationId);
+    const actor_id = stickman.id;
 
     // Idempotency Key Definition: stickmanId + limbId
-    const idempotencyKey = `detachment:${stickman.id}:${limbId}`;
+    const idempotencyKey = `detachment:${actor_id}:${limbId}`;
+
+    // Set chain context for consistent logging
+    this.setChainContext(cid, {
+      actor_id,
+      idempotency_key: idempotencyKey
+    });
+
+    this.logStep(cid, "START", "SUCCESS", {
+      limbId,
+      impulse
+    });
 
     // 0. Idempotency Check (Double-Invoke Hardener)
-    const cachedResult = this.checkIdempotency(idempotencyKey);
-    if (cachedResult) {
-      const dedupedResult = { ...cachedResult, dedupe_hit: true };
-      this.logStep(cid, "DEDUPE", "SUCCESS", {
-        idempotency_key: idempotencyKey,
+    const dedupeCheck = this.checkIdempotency(idempotencyKey);
+    if (dedupeCheck) {
+      const result = { ...dedupeCheck, dedupe_hit: true };
+      this.logStep(cid, "END", "SUCCESS", {
+        outcome: result.state,
         dedupe_hit: true,
-        outcome: dedupedResult.state
+        ...result
       });
-      return dedupedResult;
+      return result;
     }
-
-    this.logStep(cid, "START", "SUCCESS", { limbId, impulse, idempotency_key: idempotencyKey });
 
     try {
       // 1. Validation
-      const limb = this.executeStep(cid, "VALIDATE", () => {
+      const limbResult = this.executeStep(cid, "VALIDATE", () => {
         const targetLimb = stickman.limbs[limbId];
         if (!targetLimb) {
           throw new InvalidLimbError(limbId);
         }
 
         if (!targetLimb.attached) {
-          return { skipped: true, reason: "Already detached" };
+          return { skipped: true, reason: "Already detached", state: "ALREADY_DETACHED" };
         }
 
         if (impulse < this.threshold) {
-          return { skipped: true, reason: "Insufficient impulse" };
+          return { skipped: true, reason: "Insufficient impulse", state: "INSUFFICIENT_IMPULSE" };
         }
 
-        return targetLimb;
+        return { skipped: false, limb: targetLimb };
       });
 
-      if (limb.skipped) {
+      if (limbResult.skipped) {
         const skipResult = {
-          success: limb.reason === "Already detached",
-          state: limb.reason === "Already detached" ? "ALREADY_DETACHED" : "INSUFFICIENT_IMPULSE",
+          success: limbResult.state === "ALREADY_DETACHED",
+          state: limbResult.state,
           correlationId: cid,
           idempotency_key: idempotencyKey,
           dedupe_hit: false
         };
 
-        this.logStep(cid, "END", "SKIPPED", { reason: limb.reason, ...skipResult, outcome: skipResult.state });
-
         // Only mark "Already detached" as idempotent success to avoid re-running logic
-        if (limb.reason === "Already detached") {
+        if (limbResult.state === "ALREADY_DETACHED") {
           this.markProcessed(idempotencyKey, skipResult);
         }
 
+        this.logStep(cid, "END", "SKIPPED", {
+          reason: limbResult.reason,
+          outcome: skipResult.state,
+          ...skipResult
+        });
+
         return skipResult;
       }
+
+      const limb = limbResult.limb;
 
       // 2. Atomic Transition
       this.executeStep(cid, "TRANSITION", () => {
@@ -110,12 +127,23 @@ export class LimbDetachmentService extends LogicChainBase {
       };
 
       this.markProcessed(idempotencyKey, finalResult);
-      this.logStep(cid, "END", "SUCCESS", { limbId, outcome: "DETACHED", ...finalResult });
+
+      this.logStep(cid, "END", "SUCCESS", {
+        limbId,
+        outcome: "DETACHED",
+        ...finalResult
+      });
 
       return finalResult;
 
     } catch (error) {
-      this.logStep(cid, "END", "ERROR", { error: error.message, code: error.code });
+      // LogicChainBase.executeStep already logs the ERROR step.
+      // We fire the terminal END log with ERROR status to close the chain.
+      this.logStep(cid, "END", "ERROR", {
+        error_classification: error.code || 'UNKNOWN_ERROR',
+        error_message: error.message,
+        outcome: "FAILURE"
+      });
       throw error;
     }
   }

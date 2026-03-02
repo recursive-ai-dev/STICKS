@@ -244,10 +244,11 @@
             window.addEventListener('logic-chain-event', (e) => {
                 const console = document.getElementById('logicConsole');
                 const entry = document.createElement('div');
-                entry.className = `console-entry ${e.detail.step}`;
+                entry.className = `console-entry ${e.detail.step} ${e.detail.outcome}`;
 
                 const timestamp = new Date(e.detail.timestamp).toLocaleTimeString();
-                entry.innerHTML = `[${timestamp}] <strong>${e.detail.step}</strong>: ${e.detail.chain_name} (v${e.detail.chain_version})<br/>&nbsp;&nbsp;Outcome: ${e.detail.outcome}`;
+                const latency = e.detail.latency_ms ? ` (${e.detail.latency_ms}ms)` : '';
+                entry.innerHTML = `[${timestamp}] <strong>${e.detail.step}</strong>: ${e.detail.chain_name} (v${e.detail.version})${latency}<br/>&nbsp;&nbsp;Outcome: ${e.detail.outcome}`;
 
                 console.appendChild(entry);
                 console.scrollTop = console.scrollHeight;
