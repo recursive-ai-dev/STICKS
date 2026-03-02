@@ -1,5 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const TWO_PI = Math.PI * 2;
 const DEFAULT_OPTIONS = {
@@ -349,6 +353,13 @@ function evolveAnimation(options) {
 
 function main() {
     const options = parseArgs(process.argv.slice(2));
+
+    // Security: Prevent path traversal by ensuring animationName doesn't contain path separators or parent directory references
+    if (typeof options.name !== 'string' || options.name.includes('..') || options.name.includes('/') || options.name.includes('\\')) {
+        console.error(`Security Warning: Invalid animation name provided: ${options.name}`);
+        process.exit(1);
+    }
+
     const evaluation = evolveAnimation(options);
     const animationsDir = ensureAnimationDir();
     const payload = buildAnimationPayload(options.name, options.frameCount, evaluation);
@@ -359,11 +370,13 @@ function main() {
     console.log('Metrics:', payload.metadata.metrics);
 }
 
-if (require.main === module) {
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === fs.realpathSync(process.argv[1]);
+
+if (isMain) {
     main();
 }
 
-module.exports = {
+export {
     evolveAnimation,
     buildAnimationPayload,
     evaluateChromosome,
