@@ -37,6 +37,17 @@
             padding: 15px;
             border-radius: 8px;
             max-width: 300px;
+            border: 1px solid #444;
+        }
+
+        #uiOverlay:focus-within {
+            border-color: #ffcc00;
+            box-shadow: 0 0 10px #ffcc00;
+        }
+
+        .key:focus-visible {
+            outline: 2px solid #ffcc00;
+            outline-offset: 2px;
         }
         
         h1 {
@@ -87,7 +98,36 @@
             padding: 10px 15px;
             border-radius: 8px;
             font-size: 14px;
+            border: 1px solid #ffcc00;
         }
+
+        #logicConsole {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 350px;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11px;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-y: auto;
+            border: 1px solid #333;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .console-entry {
+            margin-bottom: 4px;
+            border-left: 2px solid #00aa00;
+            padding-left: 5px;
+        }
+
+        .console-entry.ERROR { border-left-color: #ff0000; color: #ff5555; }
+        .console-entry.START { color: #8888ff; }
+        .console-entry.END { color: #ffff00; }
         
         .pulse-indicator {
             position: absolute;
@@ -143,9 +183,9 @@
 </head>
 <body>
     <div id="gameContainer">
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <canvas id="gameCanvas" width="800" height="600" tabIndex="0" aria-label="Physics-driven stickman game area"></canvas>
         
-        <div id="uiOverlay">
+        <div id="uiOverlay" tabIndex="0">
             <h1 class="godfall-header">STICKS: GODFALL ECHOES</h1>
             <p class="godfall-subtitle">A Physics-Driven Stickman Chaos Game</p>
             
@@ -170,6 +210,10 @@
         <div class="delusion-indicator" id="delusionIndicator" aria-live="polite">
             Delusion: None
         </div>
+
+        <div id="logicConsole" aria-live="polite" aria-label="Logic Chain Console">
+            <div class="console-entry">Initializing Logic Monitor...</div>
+        </div>
         
         <div class="pulse-indicator" id="pulseIndicator" aria-live="assertive" role="alert">
             WORLD PULSE!
@@ -188,6 +232,24 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Create game instance
             const game = new StickGame();
+
+            // Listen for logic chain events
+            window.addEventListener('logic-chain-event', (e) => {
+                const console = document.getElementById('logicConsole');
+                const entry = document.createElement('div');
+                entry.className = `console-entry ${e.detail.step}`;
+
+                const timestamp = new Date(e.detail.timestamp).toLocaleTimeString();
+                entry.innerHTML = `[${timestamp}] <strong>${e.detail.step}</strong>: ${e.detail.chain_name} (v${e.detail.chain_version})<br/>&nbsp;&nbsp;Outcome: ${e.detail.outcome}`;
+
+                console.appendChild(entry);
+                console.scrollTop = console.scrollHeight;
+
+                // Keep only last 20 entries
+                while (console.children.length > 20) {
+                    console.removeChild(console.firstChild);
+                }
+            });
             
             // Update delusion indicator
             setInterval(() => {
@@ -228,9 +290,13 @@
             game.physics.startWorldPulseTimer = function() {
                 setInterval(() => {
                     // Trigger world pulse
-                    document.getElementById('pulseIndicator').style.display = 'block';
+                    const pulseIndicator = document.getElementById('pulseIndicator');
+                    pulseIndicator.style.display = 'block';
+                    // Re-trigger ARIA alert
+                    pulseIndicator.textContent = "WORLD PULSE! " + new Date().getSeconds();
+
                     setTimeout(() => {
-                        document.getElementById('pulseIndicator').style.display = 'none';
+                        pulseIndicator.style.display = 'none';
                     }, 2000);
                     
                     // Intensify hallucination

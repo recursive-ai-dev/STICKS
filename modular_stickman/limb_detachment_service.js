@@ -3,6 +3,8 @@
  * Handles the logic chain for detaching limbs from stickmen.
  */
 
+import { LogicChainBase } from './logic_chain_base.js';
+
 export class LimbAlreadyDetachedError extends Error {
   constructor(limbId) {
     super(`Limb ${limbId} is already detached.`);
@@ -19,53 +21,60 @@ export class InvalidLimbError extends Error {
   }
 }
 
-export class LimbDetachmentService {
+export class LimbDetachmentService extends LogicChainBase {
   constructor(config = {}) {
+    super("Limb Detachment", "1.2", config);
     this.threshold = config.threshold || 15;
-    this.version = "1.1";
-    this.chainName = "Limb Detachment";
-
-    // Injected providers for determinism
-    this.idProvider = config.idProvider || (() => `det-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
-    this.timeProvider = config.timeProvider || (() => new Date().toISOString());
   }
 
   /**
    * Orchestrates the limb detachment logic chain.
    */
   detachLimb(stickman, limbId, impulse, correlationId = null) {
-    const cid = correlationId || this.idProvider();
+    const cid = this.getCorrelationId(correlationId);
 
-    this._log(cid, "START", "SUCCESS", { limbId, impulse });
+    this.logStep(cid, "START", "SUCCESS", { limbId, impulse });
 
     try {
       // 1. Validation
-      this._log(cid, "VALIDATE", "SUCCESS", { limbId });
+      const limb = this.executeStep(cid, "VALIDATE", () => {
+        const targetLimb = stickman.limbs[limbId];
+        if (!targetLimb) {
+          throw new InvalidLimbError(limbId);
+        }
 
-      const limb = stickman.limbs[limbId];
-      if (!limb) {
-        throw new InvalidLimbError(limbId);
-      }
+        if (!targetLimb.attached) {
+          return { skipped: true, reason: "Already detached" };
+        }
 
-      if (!limb.attached) {
-        this._log(cid, "VALIDATE", "SKIPPED", { reason: "Already detached" });
-        return { success: true, state: "ALREADY_DETACHED", correlationId: cid };
-      }
+        if (impulse < this.threshold) {
+          return { skipped: true, reason: "Insufficient impulse" };
+        }
 
-      if (impulse < this.threshold) {
-        this._log(cid, "VALIDATE", "SKIPPED", { reason: "Insufficient impulse" });
-        return { success: false, state: "INSUFFICIENT_IMPULSE", correlationId: cid };
+        return targetLimb;
+      });
+
+      if (limb.skipped) {
+        this.logStep(cid, "END", "SKIPPED", { reason: limb.reason });
+        return {
+          success: limb.reason === "Already detached",
+          state: limb.reason === "Already detached" ? "ALREADY_DETACHED" : "INSUFFICIENT_IMPULSE",
+          correlationId: cid
+        };
       }
 
       // 2. Atomic Transition
-      limb.attached = false;
-      this._log(cid, "TRANSITION", "SUCCESS", { limbId });
+      this.executeStep(cid, "TRANSITION", () => {
+        limb.attached = false;
+        return { limbId };
+      });
 
       // 3. Side Effect Calculation
-      const sideEffects = this._calculateSideEffects(limbId);
-      this._log(cid, "SIDE_EFFECTS", "SUCCESS", { effects: sideEffects });
+      const sideEffects = this.executeStep(cid, "SIDE_EFFECTS", () => {
+        return this._calculateSideEffects(limbId);
+      });
 
-      this._log(cid, "END", "SUCCESS", { limbId, outcome: "DETACHED" });
+      this.logStep(cid, "END", "SUCCESS", { limbId, outcome: "DETACHED" });
 
       return {
         success: true,
@@ -76,7 +85,7 @@ export class LimbDetachmentService {
       };
 
     } catch (error) {
-      this._log(cid, "END", "ERROR", { error: error.message, code: error.code });
+      this.logStep(cid, "END", "ERROR", { error: error.message, code: error.code });
       throw error;
     }
   }
@@ -94,18 +103,5 @@ export class LimbDetachmentService {
       trait: traits[limbId] ? traits[limbId][0] : 'random_hallucination',
       effectType: 'detachment_visual'
     };
-  }
-
-  _log(correlation_id, step, outcome, data = {}) {
-    const logEntry = {
-      correlation_id,
-      chain_name: this.chainName,
-      chain_version: this.version,
-      step,
-      outcome,
-      timestamp: this.timeProvider(),
-      ...data
-    };
-    console.log(`[LOG_CHAIN] ${JSON.stringify(logEntry)}`);
   }
 }

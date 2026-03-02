@@ -1,0 +1,13 @@
+ INFO  Accepting connections at http://localhost:8080
+ HTTP  3/2/2026 7:38:33 AM ::1 GET /demo.html
+ HTTP  3/2/2026 7:38:33 AM ::1 Returned 301 in 358 ms
+ HTTP  3/2/2026 7:38:34 AM ::1 GET /demo
+ HTTP  3/2/2026 7:38:34 AM ::1 Returned 200 in 6 ms
+ HTTP  3/2/2026 7:38:34 AM ::1 GET /modular_stickman/game.js
+ HTTP  3/2/2026 7:38:34 AM ::1 Returned 404 in 4 ms
+ HTTP  3/2/2026 7:39:13 AM ::1 GET /demo.html
+ HTTP  3/2/2026 7:39:13 AM ::1 Returned 301 in 1 ms
+ HTTP  3/2/2026 7:39:13 AM ::1 GET /demo
+ HTTP  3/2/2026 7:39:13 AM ::1 Returned 200 in 2 ms
+ HTTP  3/2/2026 7:39:13 AM ::1 GET /modular_stickman/game.js
+ HTTP  3/2/2026 7:39:13 AM ::1 Returned 404 in 1 ms
