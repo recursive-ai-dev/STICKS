@@ -316,6 +316,41 @@ class StickmanPhysics {
     return stickman;
   }
 
+
+  applyTransaction(changes) {
+    for (const change of changes) {
+      const { type, targetId, payload } = change;
+      const stickman = this.stickmen.find(s => s.id === targetId);
+
+      if (!stickman && type !== 'GLOBAL_EFFECT') {
+        console.warn(`[PhysicsEngine] Transaction target ${targetId} not found for ${type}`);
+        continue;
+      }
+
+      switch (type) {
+        case 'DETACH_LIMB':
+          if (stickman.limbs[payload.limbId]) {
+            stickman.limbs[payload.limbId].attached = false;
+          }
+          break;
+        case 'ADD_DELUSION':
+          this.addDelusionTrait(payload.trait);
+          break;
+        case 'TRACK_DETACHED_LIMB':
+          this.detachedLimbs.push({
+            body: payload.body,
+            stickmanId: targetId,
+            limbName: payload.limbId,
+            originalPosition: payload.originalPosition
+          });
+          this.addDetachmentEffect(payload.body);
+          break;
+        default:
+          console.error(`[PhysicsEngine] Unknown transaction type: ${type}`);
+      }
+    }
+  }
+
   checkLimbDetachment(limbBody, torsoBody, pair) {
     const impulse = Math.abs(pair.contact.normalImpulse);
     const limbId = limbBody.label;
@@ -326,18 +361,9 @@ class StickmanPhysics {
     try {
       const result = this.detachmentService.detachLimb(stickman, limbId, impulse);
 
-      if (result.success && result.state === "DETACHED") {
-        // Atomic infra update
-        this.detachedLimbs.push({
-          body: result.limb.body,
-          stickmanId: stickman.id,
-          limbName: limbId,
-          originalPosition: result.limb.originalPosition
-        });
-
-        // Execute side effects
-        this.addDetachmentEffect(result.limb.body);
-        this.addDelusionTrait(result.sideEffects.trait);
+      if (result.success && result.state === "PREPARED" && result.transaction) {
+        // Atomic application of all changes
+        result.transaction.commit((changes) => this.applyTransaction(changes));
       }
     } catch (error) {
       console.error(`[PhysicsEngine] Detachment failed: ${error.message}`);

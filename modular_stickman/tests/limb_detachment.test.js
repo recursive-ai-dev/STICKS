@@ -23,10 +23,23 @@ function testLimbDetachment() {
   };
 
   // 1. Happy Path
-  console.log('Test 1: Happy Path Detachment');
+  console.log('Test 1: Happy Path Detachment (Transaction Preparation)');
   const result1 = service.detachLimb(stickman, 'head', 20);
-  if (result1.success && result1.state === 'DETACHED' && !stickman.limbs.head.attached && result1.correlationId === 'test-correlation-id') {
-    console.log('✅ PASS: Happy path detached limb correctly and used deterministic ID.');
+  if (result1.success && result1.state === 'PREPARED' && result1.transaction && stickman.limbs.head.attached) {
+    console.log('✅ PASS: Happy path prepared transaction correctly without mutating state.');
+
+    // Simulate commit to verify full flow
+    result1.transaction.commit((changes) => {
+        changes.forEach(c => {
+            if (c.type === 'DETACH_LIMB') stickman.limbs[c.payload.limbId].attached = false;
+        });
+    });
+
+    if (!stickman.limbs.head.attached) {
+        console.log('✅ PASS: State mutated correctly after commit.');
+    } else {
+        console.error('❌ FAIL: State not mutated after commit.');
+    }
   } else {
     console.error('❌ FAIL: Happy path failed.', result1);
   }

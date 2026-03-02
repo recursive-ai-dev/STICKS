@@ -52,8 +52,38 @@ export class LogicChainBase {
       this.logStep(cid, stepName, "SUCCESS", result || {});
       return result;
     } catch (error) {
-      this.logStep(cid, stepName, "ERROR", { error: error.message, code: error.code });
+      this.logStep(cid, stepName, "ERROR", {
+        error: error.message,
+        code: error.code,
+        stack: error.stack
+      });
+      // Preserve original error but ensure it's logged
       throw error;
     }
+  }
+
+  /**
+   * Creates a transactional result object to avoid "torn writes" by
+   * separating logic from side-effect application.
+   */
+  createTransaction(cid) {
+    const self = this;
+    return {
+      cid,
+      changes: [],
+      addChange: function(type, targetId, payload) {
+        this.changes.push({ type, targetId, payload });
+      },
+      commit: function(applier) {
+        self.logStep(cid, "COMMIT_START", "SUCCESS", { changeCount: this.changes.length });
+        try {
+          applier(this.changes);
+          self.logStep(cid, "COMMIT_END", "SUCCESS");
+        } catch (error) {
+          self.logStep(cid, "COMMIT_FAILED", "ERROR", { error: error.message });
+          throw error;
+        }
+      }
+    };
   }
 }
