@@ -4,14 +4,19 @@
  * Provides observability, correlation tracking, and structured execution.
  */
 
+import { RealWorldProvider } from './determinism_provider.js';
+
 export class LogicChainBase {
   constructor(name, version, config = {}) {
     this.chainName = name;
     this.version = version;
 
-    // Injected providers for determinism
-    this.idProvider = config.idProvider || (() => `det-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
-    this.timeProvider = config.timeProvider || (() => new Date().toISOString());
+    // Injected provider for determinism
+    this.determinismProvider = config.determinismProvider || new RealWorldProvider();
+
+    // Legacy support for individual providers if passed
+    this.idProvider = config.idProvider || (() => this.determinismProvider.nextId());
+    this.timeProvider = config.timeProvider || (() => this.determinismProvider.toISOString());
     this.logger = config.logger || ((log) => console.log(`[LOG_CHAIN] ${JSON.stringify(log)}`));
   }
 
