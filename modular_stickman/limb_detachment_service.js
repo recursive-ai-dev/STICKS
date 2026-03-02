@@ -4,26 +4,34 @@
  */
 
 import { LogicChainBase } from './logic_chain_base.js';
+import { DomainInvariantError, BoundaryValidationError } from './error_taxonomy.js';
 
-export class LimbAlreadyDetachedError extends Error {
+export class LimbAlreadyDetachedError extends DomainInvariantError {
   constructor(limbId) {
-    super(`Limb ${limbId} is already detached.`);
-    this.name = 'LimbAlreadyDetachedError';
-    this.code = 'ALREADY_DETACHED';
+    super(`Limb ${limbId} is already detached.`, 'ALREADY_DETACHED');
+    this.limbId = limbId;
   }
 }
 
-export class InvalidLimbError extends Error {
+export class InvalidLimbError extends BoundaryValidationError {
   constructor(limbId) {
-    super(`Limb ${limbId} is not valid for this stickman.`);
-    this.name = 'InvalidLimbError';
-    this.code = 'INVALID_LIMB';
+    super(`Limb ${limbId} is not valid for this stickman.`, 'INVALID_LIMB');
+    this.limbId = limbId;
+  }
+}
+
+export class InsufficientImpulseError extends DomainInvariantError {
+  constructor(limbId, impulse, threshold) {
+    super(`Impulse ${impulse} is below threshold ${threshold} for limb ${limbId}.`, 'INSUFFICIENT_IMPULSE');
+    this.limbId = limbId;
+    this.impulse = impulse;
+    this.threshold = threshold;
   }
 }
 
 export class LimbDetachmentService extends LogicChainBase {
   constructor(config = {}) {
-    super("Limb Detachment", "1.3", config);
+    super("Limb Detachment", "1.4", config);
     this.threshold = config.threshold || 15;
   }
 
@@ -59,34 +67,15 @@ export class LimbDetachmentService extends LogicChainBase {
         }
 
         if (!targetLimb.attached) {
-          return { skipped: true, reason: "Already detached" };
+          throw new LimbAlreadyDetachedError(limbId);
         }
 
         if (impulse < this.threshold) {
-          return { skipped: true, reason: "Insufficient impulse" };
+          throw new InsufficientImpulseError(limbId, impulse, this.threshold);
         }
 
         return targetLimb;
       });
-
-      if (limb.skipped) {
-        const skipResult = {
-          success: limb.reason === "Already detached",
-          state: limb.reason === "Already detached" ? "ALREADY_DETACHED" : "INSUFFICIENT_IMPULSE",
-          correlationId: cid,
-          idempotency_key: idempotencyKey,
-          dedupe_hit: false
-        };
-
-        this.logStep(cid, "END", "SKIPPED", { reason: limb.reason, ...skipResult, outcome: skipResult.state });
-
-        // Only mark "Already detached" as idempotent success to avoid re-running logic
-        if (limb.reason === "Already detached") {
-          this.markProcessed(idempotencyKey, skipResult);
-        }
-
-        return skipResult;
-      }
 
       // 2. Atomic Transition
       this.executeStep(cid, "TRANSITION", () => {
@@ -115,8 +104,23 @@ export class LimbDetachmentService extends LogicChainBase {
       return finalResult;
 
     } catch (error) {
-      this.logStep(cid, "END", "ERROR", { error: error.message, code: error.code });
-      throw error;
+      // Mapping errors to deterministic result objects for the caller (Presenter)
+      const errorResult = {
+        success: false,
+        state: error.code || "ERROR",
+        correlationId: cid,
+        error_class: error.errorClass || 'UNKNOWN',
+        retryable: error.retryable || false,
+        cause_type: error.causeType || 'INTERNAL',
+        message: error.message,
+        idempotency_key: idempotencyKey,
+        dedupe_hit: false
+      };
+
+      this.logStep(cid, "END", "ERROR", errorResult);
+
+      // We still throw if it's a critical logic failure, but here we return for precise handling
+      return errorResult;
     }
   }
 

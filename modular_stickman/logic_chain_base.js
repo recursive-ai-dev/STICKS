@@ -43,6 +43,12 @@ export class LogicChainBase {
       timestamp: this.timeProvider(),
       ...data
     };
+
+    // Ensure error metadata is top-level if provided in data
+    if (data.error_class) logEntry.error_class = data.error_class;
+    if (data.retryable !== undefined) logEntry.retryable = data.retryable;
+    if (data.cause_type) logEntry.cause_type = data.cause_type;
+
     this.logger(logEntry);
 
     // Dispatch event for UI if in browser
@@ -60,7 +66,14 @@ export class LogicChainBase {
       this.logStep(cid, stepName, "SUCCESS", result || {});
       return result;
     } catch (error) {
-      this.logStep(cid, stepName, "ERROR", { error: error.message, code: error.code });
+      const errorData = {
+        error: error.message,
+        code: error.code,
+        error_class: error.errorClass || 'UNKNOWN',
+        retryable: error.retryable || false,
+        cause_type: error.causeType || 'INTERNAL'
+      };
+      this.logStep(cid, stepName, "ERROR", errorData);
       throw error;
     }
   }
