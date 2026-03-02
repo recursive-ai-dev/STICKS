@@ -2,13 +2,16 @@
 // Main game entry point for STICKS: Godfall Echoes
 // Integrates physics, animation, and Godfall delusion systems
 
-import { Engine } from 'matter-js';
+import pkg from 'matter-js';
+const { Engine } = pkg;
+
 import { StickmanPhysics } from './physics_engine.js';
 import { loadAnimation } from './animations.js';
+import { RealWorldProvider } from './determinism_provider.js';
 
 // Game state
 class StickGame {
-  constructor() {
+  constructor(config = {}) {
     this.canvas = document.getElementById('gameCanvas');
     if (!this.canvas) {
       // Create canvas if it doesn't exist
@@ -19,8 +22,11 @@ class StickGame {
       document.body.appendChild(this.canvas);
     }
 
+    this.determinismProvider = config.determinismProvider || new RealWorldProvider();
     this.ctx = this.canvas.getContext('2d');
-    this.physics = new StickmanPhysics('gameCanvas');
+    this.physics = new StickmanPhysics('gameCanvas', {
+        determinismProvider: this.determinismProvider
+    });
     
     // Game state
     this.gameRunning = false;
@@ -40,7 +46,9 @@ class StickGame {
     
     // Setup game loop
     this.gameRunning = true;
-    requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+    if (typeof requestAnimationFrame !== 'undefined') {
+        requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+    }
     
     console.log('STICKS: Godfall Echoes - Game initialized!');
     console.log('Controls:');
@@ -65,7 +73,9 @@ class StickGame {
     this.render();
 
     // Continue game loop
-    requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+    if (typeof requestAnimationFrame !== 'undefined') {
+        requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+    }
   }
 
   render() {
@@ -92,9 +102,13 @@ class StickGame {
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     
     // Add subtle static effect for delusion
-    if (Math.random() > 0.7) {
+    if (this.determinismProvider.random() > 0.7) {
       this.ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
-      this.ctx.fillRect(Math.random() * this.canvas.width, Math.random() * this.canvas.height, 2, 2);
+      this.ctx.fillRect(
+          this.determinismProvider.random() * this.canvas.width,
+          this.determinismProvider.random() * this.canvas.height,
+          2, 2
+      );
     }
   }
 
@@ -135,7 +149,9 @@ class StickGame {
 
   start() {
     this.gameRunning = true;
-    requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+    if (typeof requestAnimationFrame !== 'undefined') {
+        requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+    }
   }
 
   pause() {
@@ -144,7 +160,9 @@ class StickGame {
 
   reset() {
     this.physics.destroy();
-    this.physics = new StickmanPhysics('gameCanvas');
+    this.physics = new StickmanPhysics('gameCanvas', {
+        determinismProvider: this.determinismProvider
+    });
     this.init();
   }
 }

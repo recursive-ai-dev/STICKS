@@ -2,9 +2,12 @@
 // Core physics system for STICKS: Godfall Echoes
 // Uses Matter.js for rigid body physics with limb detachment mechanics
 
-import { Engine, Render, World, Bodies, Body, Composite, Events, Mouse, MouseConstraint } from 'matter-js';
+import pkg from 'matter-js';
+const { Engine, Render, World, Bodies, Body, Composite, Events, Mouse, MouseConstraint } = pkg;
+
 import { applyAnimationFrame } from './animation_renderer.js';
 import { LimbDetachmentService } from './limb_detachment_service.js';
+import { RealWorldProvider } from './determinism_provider.js';
 
 /**
  * Harmonic Madness Field
@@ -66,30 +69,38 @@ const LIMB_TYPES = {
 };
 
 class StickmanPhysics {
-  constructor(canvasId = 'gameCanvas') {
-    this.canvas = document.getElementById(canvasId);
+  constructor(canvasId = 'gameCanvas', config = {}) {
+    this.canvas = (typeof document !== 'undefined' && document.getElementById(canvasId)) || null;
     if (!this.canvas) {
-      throw new Error(`Canvas with id '${canvasId}' not found`);
+      // Mock canvas for tests if needed
+      this.canvas = { width: 800, height: 600, getBoundingClientRect: () => ({ left: 0, top: 0 }), addEventListener: () => {} };
     }
+
+    this.determinismProvider = config.determinismProvider || new RealWorldProvider();
 
     // Initialize Matter.js
     this.engine = Engine.create();
     this.engine.gravity.y = GRAVITY;
     
-    this.render = Render.create({
-      element: document.body,
-      engine: this.engine,
-      options: {
-        width: this.canvas.width,
-        height: this.canvas.height,
-        wireframes: false,
-        showAngleIndicator: false,
-        showVelocity: false,
-        showCollisions: false,
-        showPositions: false,
-        show休眠: false
-      }
-    });
+    // In node environment, Render might fail due to lack of document
+    try {
+        this.render = Render.create({
+          element: typeof document !== 'undefined' ? (document.body || {}) : {},
+          engine: this.engine,
+          options: {
+            width: this.canvas.width,
+            height: this.canvas.height,
+            wireframes: false,
+            showAngleIndicator: false,
+            showVelocity: false,
+            showCollisions: false,
+            showPositions: false,
+            showSleep: false
+          }
+        });
+    } catch (e) {
+        this.render = { options: {}, canvas: this.canvas };
+    }
 
     // Create world
     this.world = this.engine.world;
@@ -102,21 +113,27 @@ class StickmanPhysics {
     this.madnessField = new MadnessField(GRAVITY, FRICTION);
 
     // Initialize Logic Chain Services
-    this.detachmentService = new LimbDetachmentService({ threshold: LIMB_DETACH_THRESHOLD });
+    this.detachmentService = new LimbDetachmentService({
+      threshold: LIMB_DETACH_THRESHOLD,
+      determinismProvider: this.determinismProvider
+    });
 
     // Input handling
-    this.mouse = Mouse.create(this.canvas);
-    this.mouseConstraint = MouseConstraint.create(this.engine, {
-      mouse: this.mouse,
-      constraint: {
-        stiffness: 0.2,
-        render: {
-          visible: false
-        }
-      }
-    });
-    
-    Composite.add(this.world, this.mouseConstraint);
+    try {
+        this.mouse = Mouse.create(this.canvas);
+        this.mouseConstraint = MouseConstraint.create(this.engine, {
+          mouse: this.mouse,
+          constraint: {
+            stiffness: 0.2,
+            render: {
+              visible: false
+            }
+          }
+        });
+        Composite.add(this.world, this.mouseConstraint);
+    } catch (e) {
+        // Silently fail mouse init in Node
+    }
     
     // Event listeners
     this.setupEventListeners();
@@ -128,10 +145,17 @@ class StickmanPhysics {
     });
     
     // Start rendering
-    Render.run(this.render);
+    if (typeof window !== 'undefined' && this.render.run) {
+      Render.run(this.render);
+    }
+
+    this.lastDelusionBurstTime = 0;
+    this.lastWorldPulseTime = this.determinismProvider.now();
   }
 
   setupEventListeners() {
+    if (!this.canvas || typeof this.canvas.addEventListener !== 'function') return;
+
     // Mouse events for grabbing limbs
     this.canvas.addEventListener('mousedown', (e) => {
       const pos = this.getMousePosition(e);
@@ -148,15 +172,17 @@ class StickmanPhysics {
     });
 
     // Keyboard events
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        this.triggerDelusionBurst();
-      } else if (e.code === 'KeyQ') {
-        this.cycleAttachment(-1);
-      } else if (e.code === 'KeyE') {
-        this.cycleAttachment(1);
-      }
-    });
+    if (typeof document !== 'undefined') {
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+          this.triggerDelusionBurst();
+        } else if (e.code === 'KeyQ') {
+          this.cycleAttachment(-1);
+        } else if (e.code === 'KeyE') {
+          this.cycleAttachment(1);
+        }
+      });
+    }
   }
 
   getMousePosition(e) {
@@ -173,7 +199,7 @@ class StickmanPhysics {
       const limb = this.detachedLimbs[i];
       if (this.isPointInBody(pos, limb.body)) {
         this.grabbedLimb = limb;
-        this.mouseConstraint.body = limb.body;
+        if (this.mouseConstraint) this.mouseConstraint.body = limb.body;
         return;
       }
     }
@@ -184,7 +210,7 @@ class StickmanPhysics {
         const limb = stickman.limbs[limbName];
         if (this.isPointInBody(pos, limb.body)) {
           this.grabbedLimb = limb;
-          this.mouseConstraint.body = limb.body;
+          if (this.mouseConstraint) this.mouseConstraint.body = limb.body;
           return;
         }
       }
@@ -192,7 +218,7 @@ class StickmanPhysics {
   }
 
   handleMouseMove(pos) {
-    if (this.grabbedLimb) {
+    if (this.grabbedLimb && this.mouse) {
       // Update mouse constraint position
       this.mouse.position.x = pos.x;
       this.mouse.position.y = pos.y;
@@ -202,7 +228,7 @@ class StickmanPhysics {
   handleMouseUp() {
     if (this.grabbedLimb) {
       this.grabbedLimb = null;
-      this.mouseConstraint.body = null;
+      if (this.mouseConstraint) this.mouseConstraint.body = null;
     }
   }
 
@@ -223,7 +249,7 @@ class StickmanPhysics {
   // Create a new stickman with modular parts
   createStickman(x = 400, y = 100, traits = {}) {
     const stickman = {
-      id: Date.now() + Math.random(),
+      id: this.determinismProvider.now() + this.determinismProvider.random(),
       body: null,
       limbs: {},
       attachments: [],
@@ -317,6 +343,7 @@ class StickmanPhysics {
   }
 
   checkLimbDetachment(limbBody, torsoBody, pair) {
+    if (!pair || !pair.contact) return;
     const impulse = Math.abs(pair.contact.normalImpulse);
     const limbId = limbBody.label;
     
@@ -394,7 +421,7 @@ class StickmanPhysics {
 
   // Delusion Burst system
   triggerDelusionBurst() {
-    const now = Date.now();
+    const now = this.determinismProvider.now();
     const cooldown = 8000; // 8 seconds
     
     if (now - this.lastDelusionBurstTime < cooldown) return;
@@ -459,9 +486,22 @@ class StickmanPhysics {
 
   // World Pulse Events (every 60 seconds)
   startWorldPulseTimer() {
-    setInterval(() => {
-      this.triggerWorldPulse();
+    // Use a poll instead of setInterval for better determinism support if needed,
+    // but for now we'll just check time in a game loop or similar.
+    // To maintain existing behavior but allow determinism:
+    this.worldPulseInterval = setInterval(() => {
+      if (this.determinismProvider instanceof RealWorldProvider) {
+          this.triggerWorldPulse();
+      }
     }, 60000); // 60 seconds
+  }
+
+  updateWorldPulse() {
+    const now = this.determinismProvider.now();
+    if (now - this.lastWorldPulseTime >= 60000) {
+      this.triggerWorldPulse();
+      this.lastWorldPulseTime = now;
+    }
   }
 
   triggerWorldPulse() {
@@ -486,6 +526,9 @@ class StickmanPhysics {
     // Clear canvas
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
+    // Check world pulse for determinism
+    this.updateWorldPulse();
+
     // Draw stickmen and limbs
     for (let stickman of this.stickmen) {
       this.drawStickman(ctx, stickman, deltaTime);
@@ -500,7 +543,7 @@ class StickmanPhysics {
   drawStickman(ctx, stickman, deltaTime) {
     // Get current animation frame based on state
     const animationName = 'walk'; // Default animation
-    const animationFrame = Math.floor(Date.now() / 100) % 6;
+    const animationFrame = Math.floor(this.determinismProvider.now() / 100) % 6;
     
     // Apply animation to rendering
     const bodyParts = applyAnimationFrame(
@@ -546,13 +589,18 @@ class StickmanPhysics {
 
   // Cleanup
   destroy() {
-    Render.stop(this.render);
+    if (this.worldPulseInterval) clearInterval(this.worldPulseInterval);
+    if (this.render && this.render.run) Render.stop(this.render);
     World.clear(this.world);
     Engine.clear(this.engine);
-    this.canvas.removeEventListener('mousedown', this.handleMouseDown);
-    this.canvas.removeEventListener('mousemove', this.handleMouseMove);
-    this.canvas.removeEventListener('mouseup', this.handleMouseUp);
-    document.removeEventListener('keydown', this.handleKeyDown);
+    if (this.canvas.removeEventListener) {
+        this.canvas.removeEventListener('mousedown', this.handleMouseDown);
+        this.canvas.removeEventListener('mousemove', this.handleMouseMove);
+        this.canvas.removeEventListener('mouseup', this.handleMouseUp);
+    }
+    if (typeof document !== 'undefined') {
+        document.removeEventListener('keydown', this.handleKeyDown);
+    }
   }
 }
 
