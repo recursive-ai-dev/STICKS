@@ -13,6 +13,9 @@ export class LogicChainBase {
     this.idProvider = config.idProvider || (() => `det-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
     this.timeProvider = config.timeProvider || (() => new Date().toISOString());
     this.logger = config.logger || ((log) => console.log(`[LOG_CHAIN] ${JSON.stringify(log)}`));
+
+    // Idempotency Ledger (At-Least-Once Reality Hardener)
+    this.idempotencyLedger = new Map();
   }
 
   /**
@@ -54,6 +57,31 @@ export class LogicChainBase {
     } catch (error) {
       this.logStep(cid, stepName, "ERROR", { error: error.message, code: error.code });
       throw error;
+    }
+  }
+
+  /**
+   * Idempotency Check
+   * Returns the cached result if the key has already been processed.
+   */
+  checkIdempotency(idempotencyKey) {
+    if (this.idempotencyLedger.has(idempotencyKey)) {
+      const cached = this.idempotencyLedger.get(idempotencyKey);
+      this.logStep(cached.correlationId, "IDEMPOTENCY_HIT", "SUCCESS", {
+        idempotency_key: idempotencyKey,
+        originalOutcome: cached.state
+      });
+      return cached;
+    }
+    return null;
+  }
+
+  /**
+   * Marks a request as processed in the ledger.
+   */
+  markProcessed(idempotencyKey, result) {
+    if (idempotencyKey) {
+      this.idempotencyLedger.set(idempotencyKey, result);
     }
   }
 }

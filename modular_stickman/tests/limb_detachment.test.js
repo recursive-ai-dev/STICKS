@@ -34,8 +34,9 @@ function testLimbDetachment() {
   // 2. Idempotency (Already Detached)
   console.log('Test 2: Idempotent Call (Already Detached)');
   const result2 = service.detachLimb(stickman, 'head', 20);
-  if (result2.success && result2.state === 'ALREADY_DETACHED') {
-    console.log('✅ PASS: Idempotent call handled correctly.');
+  // With the new hardener, this returns state 'DETACHED' (cached) and dedupe_hit: true
+  if (result2.success && result2.state === 'DETACHED' && result2.dedupe_hit === true) {
+    console.log('✅ PASS: Idempotent call handled correctly (hit dedupe).');
   } else {
     console.error('❌ FAIL: Idempotency failed.', result2);
   }
