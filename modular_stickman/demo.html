@@ -179,6 +179,13 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
+
+        .key-active {
+            background: #ffcc00 !important;
+            color: #333 !important;
+            box-shadow: 0 0 10px #ffcc00;
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
@@ -194,10 +201,10 @@
                     <span class="key">Mouse</span> Drag to pull/throw limbs
                 </div>
                 <div class="control-item">
-                    <span class="key">Space</span> Trigger Delusion Burst
+                    <span id="key-Space" class="key">Space</span> Trigger Delusion Burst
                 </div>
                 <div class="control-item">
-                    <span class="key">Q</span> / <span class="key">E</span> Cycle attachments
+                    <span id="key-KeyQ" class="key">Q</span> / <span id="key-KeyE" class="key">E</span> Cycle attachments
                 </div>
                 <div class="control-item">
                     <span class="key">Click</span> on limbs to grab them
@@ -267,6 +274,9 @@
             
             // Add event listeners for controls
             document.addEventListener('keydown', (e) => {
+                const keyElement = document.getElementById(`key-${e.code}`);
+                if (keyElement) keyElement.classList.add('key-active');
+
                 if (e.code === 'Space') {
                     // Show pulse indicator
                     document.getElementById('pulseIndicator').style.display = 'block';
@@ -284,6 +294,11 @@
                     // Add blood splatter effect for impact
                     createBloodSplatter();
                 }
+            });
+
+            document.addEventListener('keyup', (e) => {
+                const keyElement = document.getElementById(`key-${e.code}`);
+                if (keyElement) keyElement.classList.remove('key-active');
             });
             
             // World Pulse Events
