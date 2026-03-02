@@ -2,6 +2,7 @@
 // Main game entry point for STICKS: Godfall Echoes
 // Integrates physics, animation, and Godfall delusion systems
 
+import { Engine } from 'matter-js';
 import { StickmanPhysics } from './physics_engine.js';
 import { loadAnimation } from './animations.js';
 
@@ -57,7 +58,8 @@ class StickGame {
     this.lastTime = timestamp;
 
     // Update physics
-    this.physics.engine.update(1000 / 60); // Fixed timestep
+    const physicsDelta = 1000 / 60;
+    Engine.update(this.physics.engine, physicsDelta);
 
     // Render
     this.render();

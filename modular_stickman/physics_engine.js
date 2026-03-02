@@ -6,6 +6,49 @@ import { Engine, Render, World, Bodies, Body, Composite, Events, Mouse, MouseCon
 import { applyAnimationFrame } from './animation_renderer.js';
 import { LimbDetachmentService } from './limb_detachment_service.js';
 
+/**
+ * Harmonic Madness Field
+ * Calculates physics perturbations using evolving Fourier series.
+ */
+class MadnessField {
+  constructor(baseGravity, baseFriction) {
+    this.baseGravity = baseGravity;
+    this.baseFriction = baseFriction;
+    this.intensity = 0;
+    this.harmonics = [
+      { amplitude: 0.1, frequency: 0.001, phase: 0 }, // Low-freq drift
+      { amplitude: 0.05, frequency: 0.005, phase: Math.PI / 4 }, // Mid-freq jitter
+      { amplitude: 0.02, frequency: 0.015, phase: Math.PI / 2 }  // High-freq micro-oscillations
+    ];
+    this.time = 0;
+  }
+
+  update(deltaTime, stickmanCount) {
+    this.time += deltaTime;
+    // Intensity scales with the number of stickmen or other chaos factors
+    this.intensity = Math.min(1.0, 0.2 + (stickmanCount * 0.1));
+  }
+
+  /**
+   * Calculates the current harmonic perturbation for a given property.
+   */
+  calculatePerturbation() {
+    return this.harmonics.reduce((acc, h) => {
+      return acc + h.amplitude * Math.sin(this.time * h.frequency + h.phase);
+    }, 0) * this.intensity;
+  }
+
+  getCurrentGravity() {
+    const perturbation = this.calculatePerturbation();
+    return this.baseGravity * (1 + perturbation);
+  }
+
+  getCurrentFriction() {
+    const perturbation = this.calculatePerturbation();
+    return this.baseFriction * (1 + perturbation);
+  }
+}
+
 // Physics constants
 const GRAVITY = 0.8;
 const FRICTION = 0.005;
@@ -55,6 +98,9 @@ class StickmanPhysics {
     this.stickmen = [];
     this.detachedLimbs = [];
     
+    // Initialize Madness Field
+    this.madnessField = new MadnessField(GRAVITY, FRICTION);
+
     // Initialize Logic Chain Services
     this.detachmentService = new LimbDetachmentService({ threshold: LIMB_DETACH_THRESHOLD });
 
@@ -74,10 +120,15 @@ class StickmanPhysics {
     
     // Event listeners
     this.setupEventListeners();
+
+    // Harmonic Madness Field hook
+    Events.on(this.engine, 'beforeUpdate', (event) => {
+      this.madnessField.update(event.delta, this.stickmen.length);
+      this.engine.gravity.y = this.madnessField.getCurrentGravity();
+    });
     
     // Start rendering
     Render.run(this.render);
-    Engine.run(this.engine);
   }
 
   setupEventListeners() {
@@ -372,13 +423,13 @@ class StickmanPhysics {
       }
     }
     
-    // Randomly invert gravity for some time
+    // Intensify Madness Field instead of simple gravity flip
+    const originalIntensity = this.madnessField.intensity;
+    this.madnessField.intensity = 1.5; // Overdrive
+
     setTimeout(() => {
-      this.engine.gravity.y = GRAVITY * (Math.random() > 0.5 ? -1 : 1);
-      setTimeout(() => {
-        this.engine.gravity.y = GRAVITY;
-      }, 3000); // 3 seconds of inverted gravity
-    }, 500);
+      this.madnessField.intensity = originalIntensity;
+    }, 5000);
   }
 
   showDelusionBurstVisual() {
