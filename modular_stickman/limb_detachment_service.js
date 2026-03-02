@@ -23,7 +23,7 @@ export class InvalidLimbError extends Error {
 
 export class LimbDetachmentService extends LogicChainBase {
   constructor(config = {}) {
-    super("Limb Detachment", "1.2", config);
+    super("Limb Detachment", "1.3", config);
     this.threshold = config.threshold || 15;
   }
 
@@ -33,7 +33,22 @@ export class LimbDetachmentService extends LogicChainBase {
   detachLimb(stickman, limbId, impulse, correlationId = null) {
     const cid = this.getCorrelationId(correlationId);
 
-    this.logStep(cid, "START", "SUCCESS", { limbId, impulse });
+    // Idempotency Key Definition: stickmanId + limbId
+    const idempotencyKey = `detachment:${stickman.id}:${limbId}`;
+
+    // 0. Idempotency Check (Double-Invoke Hardener)
+    const cachedResult = this.checkIdempotency(idempotencyKey);
+    if (cachedResult) {
+      const dedupedResult = { ...cachedResult, dedupe_hit: true };
+      this.logStep(cid, "DEDUPE", "SUCCESS", {
+        idempotency_key: idempotencyKey,
+        dedupe_hit: true,
+        outcome: dedupedResult.state
+      });
+      return dedupedResult;
+    }
+
+    this.logStep(cid, "START", "SUCCESS", { limbId, impulse, idempotency_key: idempotencyKey });
 
     try {
       // 1. Validation
@@ -55,12 +70,22 @@ export class LimbDetachmentService extends LogicChainBase {
       });
 
       if (limb.skipped) {
-        this.logStep(cid, "END", "SKIPPED", { reason: limb.reason });
-        return {
+        const skipResult = {
           success: limb.reason === "Already detached",
           state: limb.reason === "Already detached" ? "ALREADY_DETACHED" : "INSUFFICIENT_IMPULSE",
-          correlationId: cid
+          correlationId: cid,
+          idempotency_key: idempotencyKey,
+          dedupe_hit: false
         };
+
+        this.logStep(cid, "END", "SKIPPED", { reason: limb.reason, ...skipResult, outcome: skipResult.state });
+
+        // Only mark "Already detached" as idempotent success to avoid re-running logic
+        if (limb.reason === "Already detached") {
+          this.markProcessed(idempotencyKey, skipResult);
+        }
+
+        return skipResult;
       }
 
       // 2. Atomic Transition
@@ -74,15 +99,20 @@ export class LimbDetachmentService extends LogicChainBase {
         return this._calculateSideEffects(limbId);
       });
 
-      this.logStep(cid, "END", "SUCCESS", { limbId, outcome: "DETACHED" });
-
-      return {
+      const finalResult = {
         success: true,
         state: "DETACHED",
         correlationId: cid,
         limb: limb,
-        sideEffects: sideEffects
+        sideEffects: sideEffects,
+        idempotency_key: idempotencyKey,
+        dedupe_hit: false
       };
+
+      this.markProcessed(idempotencyKey, finalResult);
+      this.logStep(cid, "END", "SUCCESS", { limbId, outcome: "DETACHED", ...finalResult });
+
+      return finalResult;
 
     } catch (error) {
       this.logStep(cid, "END", "ERROR", { error: error.message, code: error.code });

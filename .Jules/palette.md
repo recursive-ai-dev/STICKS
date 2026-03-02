@@ -1,3 +1,3 @@
-## 2026-03-01 - [Initial UX Audit]
-**Learning:** Found that the main landing page and demo page lack focus indicators for keyboard navigation, and the dynamic "World Pulse" notification is not announced to screen readers.
-**Action:** Implement focus-visible styles for interactive elements and add ARIA live regions for dynamic game events.
+## 2026-03-02 - Idempotency Observability
+**Learning:** For critical logic chains, idempotency keys and deduplication status must be explicitly logged to facilitate debugging of "at-least-once" message delivery and UI double-clicks.
+**Action:** Include `idempotency_key` and `dedupe_hit` in the terminal log entry of every hardened Logic Chain.
