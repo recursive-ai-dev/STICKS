@@ -1,4 +1,5 @@
-import { LimbDetachmentService, InvalidLimbError } from '../limb_detachment_service.js';
+import { LimbDetachmentService } from '../limb_detachment_service.js';
+import { InvalidLimbError } from '../limb_detachment_service.js';
 
 function testLimbDetachment() {
   console.log('--- Starting Limb Detachment Tests ---');
@@ -52,15 +53,11 @@ function testLimbDetachment() {
 
   // 4. Invalid Limb
   console.log('Test 4: Invalid Limb Error');
-  try {
-    service.detachLimb(stickman, 'tail', 20);
-    console.error('❌ FAIL: Should have thrown InvalidLimbError.');
-  } catch (e) {
-    if (e instanceof InvalidLimbError) {
-      console.log('✅ PASS: Correctly threw InvalidLimbError.');
-    } else {
-      console.error('❌ FAIL: Threw wrong error type.', e);
-    }
+  const result4 = service.detachLimb(stickman, 'tail', 20);
+  if (!result4.success && result4.state === 'INVALID_LIMB') {
+    console.log('✅ PASS: Correctly returned INVALID_LIMB state.');
+  } else {
+    console.error('❌ FAIL: Failed to handle invalid limb.', result4);
   }
 
   console.log('--- Limb Detachment Tests Complete ---');

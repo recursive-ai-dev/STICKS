@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STICKS: Godfall Echoes</title>
+    <title>STICKS: Godfall Echoes - Character Generator Hub</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #0d0d33, #1a1a2e);
-            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f0f2a 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -17,124 +23,442 @@
             justify-content: center;
             color: #ffffff;
             text-align: center;
+            overflow-x: hidden;
+            position: relative;
         }
-        
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 204, 0, 0.4);
+            border-radius: 50%;
+            animation: rise 20s infinite;
+        }
+
+        @keyframes rise {
+            0%, 100% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) scale(1.5);
+                opacity: 0;
+            }
+        }
+
         .container {
-            max-width: 800px;
-            padding: 20px;
+            max-width: 1000px;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
         }
-        
+
         h1 {
-            color: #ffcc00;
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
-            font-size: 36px;
-            margin-bottom: 20px;
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #ffcc00, #48dbfb, #ff9ff3);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 5s ease infinite, pulse 2s ease-in-out infinite;
+            text-shadow: 0 0 40px rgba(255, 204, 0, 0.5);
+            letter-spacing: 5px;
+            margin-bottom: 15px;
         }
-        
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
         .subtitle {
-            color: #a0522d;
-            font-size: 20px;
-            margin-bottom: 30px;
-            text-shadow: 0 0 5px rgba(160, 82, 45, 0.5);
+            color: #a0a0c0;
+            font-size: 1.8rem;
+            margin-bottom: 40px;
+            text-shadow: 0 0 10px rgba(160, 82, 45, 0.5);
+            letter-spacing: 3px;
+            text-transform: uppercase;
         }
-        
+
         .intro {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            line-height: 1.6;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            line-height: 1.8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
-        
+
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
         }
-        
+
         .feature-card {
-            background: rgba(30, 30, 50, 0.7);
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #ffcc00;
+            background: rgba(30, 30, 50, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #ffcc00;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 15px 40px rgba(255, 204, 0, 0.3);
+            border-left-color: #ff6b6b;
+        }
+
+        .feature-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: #ffcc00;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card p {
+            color: #b0b0d0;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 40px 0;
+        }
+
         .btn {
-            background: linear-gradient(45deg, #8b4513, #a0522d);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 12px 24px;
-            font-size: 18px;
-            border-radius: 5px;
+            padding: 18px 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 12px;
             cursor: pointer;
             margin: 10px;
-            transition: all 0.3s;
+            transition: all 0.4s ease;
             text-decoration: none;
             display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
         .btn:hover {
-            background: linear-gradient(45deg, #a0522d, #8b4513);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
         }
-        
-        .btn:focus-visible {
-            outline: 3px solid #ffcc00;
-            outline-offset: 4px;
-            box-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+
+        .btn-primary {
+            background: linear-gradient(135deg, #feca57 0%, #ff9f43 100%);
+            box-shadow: 0 8px 25px rgba(254, 202, 87, 0.4);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 15px 40px rgba(254, 202, 87, 0.6);
+        }
+
+        .btn-cowboy {
+            background: linear-gradient(135deg, #d4a574 0%, #8b4513 100%);
+            box-shadow: 0 8px 25px rgba(212, 165, 116, 0.4);
+        }
+
+        .btn-cowboy:hover {
+            box-shadow: 0 15px 40px rgba(212, 165, 116, 0.6);
+        }
+
+        .btn-medieval {
+            background: linear-gradient(135deg, #8b0000 0%, #4a4a4a 100%);
+            box-shadow: 0 8px 25px rgba(139, 0, 0, 0.4);
+        }
+
+        .btn-medieval:hover {
+            box-shadow: 0 15px 40px rgba(139, 0, 0, 0.6);
+        }
+
+        .btn-scifi {
+            background: linear-gradient(135deg, #00f5ff 0%, #ff00ff 100%);
+            box-shadow: 0 8px 25px rgba(0, 245, 255, 0.4);
+        }
+
+        .btn-scifi:hover {
+            box-shadow: 0 15px 40px rgba(0, 245, 255, 0.6);
         }
 
         .footer {
-            margin-top: 40px;
+            margin-top: 50px;
             font-size: 14px;
-            color: #aaa;
+            color: #8080a0;
+            position: relative;
+            z-index: 1;
         }
-        
+
         .godfall-logo {
-            font-size: 14px;
-            color: #8b4513;
-            margin-top: 10px;
+            font-size: 16px;
+            color: #ffcc00;
+            margin-top: 15px;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+            letter-spacing: 2px;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px 35px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #48dbfb;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #a0a0c0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .btn {
+                padding: 15px 30px;
+                font-size: 1rem;
+            }
+
+            .stats-bar {
+                gap: 15px;
+            }
+
+            .stat-item {
+                padding: 15px 25px;
+            }
+
+            .stat-number {
+                font-size: 1.8rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Background Animation -->
+    <div class="bg-animation" id="bgAnimation"></div>
+
     <div class="container">
         <h1>STICKS: GODFALL ECHOES</h1>
-        <p class="subtitle">A Physics-Driven Stickman Chaos Game</p>
-        
-        <div class="intro">
-            <p>Welcome to STICKS: Godfall Echoes, where physics-based chaos meets divine delirium!</p>
-            <p>Break reality. Break limbs. Break sanity.</p>
+        <p class="subtitle">Ultimate Stickman Character Generator</p>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-number">18+</span>
+                <span class="stat-label">Character Types</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">12</span>
+                <span class="stat-label">Color Palettes</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">6</span>
+                <span class="stat-label">Animations</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">54+</span>
+                <span class="stat-label">Unique Traits</span>
+            </div>
         </div>
-        
+
+        <div class="intro">
+            <p><strong>Welcome to STICKS: Godfall Echoes</strong> — the ultimate procedural stickman character generation system!</p>
+            <p style="margin-top: 15px;">Break reality. Break limbs. Break sanity. Generate endless variations of unique characters across multiple genres.</p>
+        </div>
+
         <div class="features">
             <div class="feature-card">
+                <h3>🤠 Cowboy Era</h3>
+                <p>Sheriffs, outlaws, cowgirls, and drifters with lassos, badges, ponchos, and authentic Wild West gear</p>
+            </div>
+            <div class="feature-card">
+                <h3>⚔️ Medieval Fantasy</h3>
+                <p>Knights in shining armor, archers, mages, and peasants with period-accurate equipment</p>
+            </div>
+            <div class="feature-card">
+                <h3>🚀 Sci-Fi Future</h3>
+                <p>Space marines, scientists, engineers, and aliens with neon tech, jetpacks, and plasma weapons</p>
+            </div>
+            <div class="feature-card">
                 <h3>✨ Limb Detachment</h3>
-                <p>Physics-based limb detachment on high-impact collisions</p>
+                <p>Physics-based limb detachment on high-impact collisions with Matter.js integration</p>
             </div>
             <div class="feature-card">
                 <h3>🌀 Delusion Bursts</h3>
                 <p>Temporary reality warps with gravity inversion and hallucinations</p>
             </div>
             <div class="feature-card">
-                <h3>🔧 Modular Attachments</h3>
-                <p>Cycle through weapons and tools with Q/E keys</p>
-            </div>
-            <div class="feature-card">
-                <h3>⚡ World Pulse Events</h3>
-                <p>Every 60 seconds: terrain fractures and delusions intensify</p>
+                <h3>🎨 Procedural Generation</h3>
+                <p>Seeded randomization creates unique trait combinations every time</p>
             </div>
         </div>
-        
-        <a href="modular_stickman/demo.html" class="btn">PLAY NOW</a>
-        
-        <div class="godfall-logo">GODFALL ECHOES v1.0 • Built on Matter.js & Canvas 2D</div>
+
+        <div class="btn-group">
+            <a href="stickman_hub.html" class="btn btn-primary">🎮 OPEN CHARACTER HUB</a>
+            <a href="modular_stickman/demo.html" class="btn">▶️ PLAY DEMO</a>
+        </div>
+
+        <div class="btn-group">
+            <a href="stickemup_character_generator/cowboy/viewer.html" class="btn btn-cowboy">🤠 Cowboy Generator</a>
+            <a href="stickemup_character_generator/medieval/test_viewer.html" class="btn btn-medieval">⚔️ Medieval Generator</a>
+            <a href="#" class="btn btn-scifi" onclick="alert('Sci-Fi generator coming soon!')">🚀 Sci-Fi Generator</a>
+        </div>
+
+        <div class="footer">
+            <p>Created with modular stickman animation system and Godfall integration</p>
+            <p class="godfall-logo">GODFALL ECHOES v2.0 • Built on Matter.js & Canvas 2D</p>
+        </div>
     </div>
-    
-    <div class="footer">
-        <p>Created with modular stickman animation system and Godfall integration</p>
-    </div>
+
+    <script>
+        // Create background particles
+        function createParticles() {
+            const container = document.getElementById('bgAnimation');
+            for (let i = 0; i < 60; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'bg-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Animate stats counters
+        function animateCounter(element, target) {
+            let current = 0;
+            const increment = target / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    element.textContent = target + '+';
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current);
+                }
+            }, 30);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+
+            // Animate stats
+            const statNumbers = document.querySelectorAll('.stat-number');
+            const targets = [18, 12, 6, 54];
+            statNumbers.forEach((stat, index) => {
+                setTimeout(() => {
+                    animateCounter(stat, targets[index]);
+                }, index * 200);
+            });
+        });
+    </script>
 </body>
 </html>

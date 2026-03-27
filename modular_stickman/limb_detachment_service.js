@@ -4,20 +4,28 @@
  */
 
 import { LogicChainBase } from './logic_chain_base.js';
+import { DomainInvariantError, BoundaryValidationError } from './error_taxonomy.js';
 
-export class LimbAlreadyDetachedError extends Error {
+export class LimbAlreadyDetachedError extends DomainInvariantError {
   constructor(limbId) {
-    super(`Limb ${limbId} is already detached.`);
-    this.name = 'LimbAlreadyDetachedError';
-    this.code = 'ALREADY_DETACHED';
+    super(`Limb ${limbId} is already detached.`, 'ALREADY_DETACHED');
+    this.limbId = limbId;
   }
 }
 
-export class InvalidLimbError extends Error {
+export class InvalidLimbError extends BoundaryValidationError {
   constructor(limbId) {
-    super(`Limb ${limbId} is not valid for this stickman.`);
-    this.name = 'InvalidLimbError';
-    this.code = 'INVALID_LIMB';
+    super(`Limb ${limbId} is not valid for this stickman.`, 'INVALID_LIMB');
+    this.limbId = limbId;
+  }
+}
+
+export class InsufficientImpulseError extends DomainInvariantError {
+  constructor(limbId, impulse, threshold) {
+    super(`Impulse ${impulse} is below threshold ${threshold} for limb ${limbId}.`, 'INSUFFICIENT_IMPULSE');
+    this.limbId = limbId;
+    this.impulse = impulse;
+    this.threshold = threshold;
   }
 }
 
@@ -75,6 +83,11 @@ export class LimbDetachmentService extends LogicChainBase {
 
         if (impulse < this.threshold) {
           return { skipped: true, reason: "Insufficient impulse", state: "INSUFFICIENT_IMPULSE" };
+          throw new LimbAlreadyDetachedError(limbId);
+        }
+
+        if (impulse < this.threshold) {
+          throw new InsufficientImpulseError(limbId, impulse, this.threshold);
         }
 
         return { skipped: false, limb: targetLimb };
@@ -145,6 +158,23 @@ export class LimbDetachmentService extends LogicChainBase {
         outcome: "FAILURE"
       });
       throw error;
+      // Mapping errors to deterministic result objects for the caller (Presenter)
+      const errorResult = {
+        success: false,
+        state: error.code || "ERROR",
+        correlationId: cid,
+        error_class: error.errorClass || 'UNKNOWN',
+        retryable: error.retryable || false,
+        cause_type: error.causeType || 'INTERNAL',
+        message: error.message,
+        idempotency_key: idempotencyKey,
+        dedupe_hit: false
+      };
+
+      this.logStep(cid, "END", "ERROR", errorResult);
+
+      // We still throw if it's a critical logic failure, but here we return for precise handling
+      return errorResult;
     }
   }
 
