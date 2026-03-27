@@ -1,19 +1,66 @@
-*.png
-modular_stickman/.env
-stickemup_generator.code-workspace
-GODFALL_INTEGRATION_GUIDE.md
-godfall/INTEGRATION_README.md
-/godfall/01_Core_Mythology
-/godfall/02_World_Structure
-/godfall/03_History
-/godfall/04_Species
-/godfall/05_Factions
-/godfall/06_Magic_System
-/godfall/07_Geography
-/godfall/08_Language
-/godfall/09_Delusion_Manifestations
-/godfall/10_Religion
-/godfall/11_Artifacts
-/godfall/12_Notable_Figures
+```
+# Compiled and binary files
+*.pyc
+*.class
+*.o
+*.exe
+*.dll
+*.so
+*.a
+*.obj
+*.out
 
+# Dependencies
 node_modules/
+venv/
+.venv/
+__pycache__/
+dist/
+build/
+target/
+.gradle/
+
+# Editors/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# System/Environment
+.DS_Store
+Thumbs.db
+.env
+.env.local
+*.env.*
+
+# Logs and coverage
+*.log
+coverage/
+htmlcov/
+.coverage
+
+# Compressed files
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
+```
