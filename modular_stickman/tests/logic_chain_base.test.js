@@ -50,8 +50,10 @@ function testLogicChainBase() {
         throw err;
     });
   } catch (e) {
-    const errorLog = logs[2];
-    if (errorLog.outcome === 'ERROR' && errorLog.error_class === 'FATAL' && errorLog.retryable === false) {
+    // Note: executeStep logs twice on error - first technical details, then structured data
+    // The second log (index 3) contains the structured error_class, retryable fields
+    const errorLog = logs[3];
+    if (errorLog && errorLog.outcome === 'ERROR' && errorLog.error_class === 'FATAL' && errorLog.retryable === false) {
       console.log('✅ PASS: executeStep logged error and rethrew.');
     } else {
       console.error('❌ FAIL: executeStep failure logging incorrect.', errorLog);

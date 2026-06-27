@@ -82,11 +82,6 @@ export class LimbDetachmentService extends LogicChainBase {
         }
 
         if (impulse < this.threshold) {
-          return { skipped: true, reason: "Insufficient impulse", state: "INSUFFICIENT_IMPULSE" };
-          throw new LimbAlreadyDetachedError(limbId);
-        }
-
-        if (impulse < this.threshold) {
           throw new InsufficientImpulseError(limbId, impulse, this.threshold);
         }
 
@@ -157,7 +152,7 @@ export class LimbDetachmentService extends LogicChainBase {
         error_message: error.message,
         outcome: "FAILURE"
       });
-      throw error;
+      
       // Mapping errors to deterministic result objects for the caller (Presenter)
       const errorResult = {
         success: false,

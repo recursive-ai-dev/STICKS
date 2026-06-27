@@ -123,12 +123,14 @@ export class LogicChainBase {
       return result;
     } catch (error) {
       const stepLatency = this.determinismProvider.now() - stepStart;
+      // First log: technical error details
       this.logStep(cid, stepName, "ERROR", {
         error_classification: error.code || 'UNKNOWN_ERROR',
         error_message: error.message,
         preserved_cause: error.cause || null,
         step_latency_ms: stepLatency
       });
+      // Second log: structured error data for observability
       const errorData = {
         error: error.message,
         code: error.code,
@@ -164,5 +166,59 @@ export class LogicChainBase {
     if (idempotencyKey) {
       this.idempotencyLedger.set(idempotencyKey, result);
     }
+  }
+
+  /**
+   * Commits an event to the outbox for eventual consistency / event sourcing.
+   * This enables reliable event publishing after successful transaction completion.
+   * @param {string} correlationId - The correlation ID for tracing
+   * @param {string} eventType - The type of event being published
+   * @param {string} version - The schema version of the event
+   * @param {object} payload - The event payload data
+   */
+  commitToOutbox(correlationId, eventType, version, payload) {
+    if (!this.outbox) {
+      this.outbox = [];
+    }
+    const event = {
+      eventId: this.idProvider(),
+      correlationId,
+      eventType,
+      version,
+      timestamp: this.timeProvider(),
+      payload,
+      chainName: this.chainName,
+      chainVersion: this.version
+    };
+    this.outbox.push(event);
+    
+    // Log the event commitment for observability
+    this.logStep(correlationId, "OUTBOX_COMMIT", "SUCCESS", {
+      event_type: eventType,
+      event_id: event.eventId
+    });
+    
+    return event;
+  }
+
+  /**
+   * Retrieves and clears the outbox, returning all pending events.
+   * @returns {Array} Array of pending events
+   */
+  flushOutbox() {
+    if (!this.outbox || this.outbox.length === 0) {
+      return [];
+    }
+    const events = [...this.outbox];
+    this.outbox = [];
+    return events;
+  }
+
+  /**
+   * Gets the current outbox without clearing it.
+   * @returns {Array} Array of pending events
+   */
+  getOutbox() {
+    return this.outbox || [];
   }
 }
