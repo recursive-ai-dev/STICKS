@@ -137,6 +137,9 @@ class StickmanPhysics {
     
     // Event listeners
     this.setupEventListeners();
+    
+    // Set up collision listener once to avoid exponential event handler growth
+    this.setupCollisionListener();
 
     // Harmonic Madness Field hook
     Events.on(this.engine, 'beforeUpdate', (event) => {
@@ -323,7 +326,17 @@ class StickmanPhysics {
     // Store stickman
     this.stickmen.push(stickman);
 
-    // Add collision event listener for limb detachment
+    // Collision listener is set up once in constructor, not per stickman
+    // See setupCollisionListener() called in constructor
+
+    return stickman;
+  }
+
+  /**
+   * Sets up the collision event listener for limb detachment.
+   * Called once in constructor to avoid exponential event handler growth.
+   */
+  setupCollisionListener() {
     Events.on(this.engine, 'collisionStart', (event) => {
       const pairs = event.pairs;
       for (let pair of pairs) {
@@ -338,8 +351,6 @@ class StickmanPhysics {
         }
       }
     });
-
-    return stickman;
   }
 
   checkLimbDetachment(limbBody, torsoBody, pair) {

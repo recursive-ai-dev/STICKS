@@ -542,7 +542,7 @@ function renderStickCowperson(ctx, character, frame, direction, traits, animatio
       ctx,
       hipX + 6 * SCALE,
       hipY - 2 * SCALE,
-      ctx + 6 * SCALE,
+      cx + 6 * SCALE,
       footY - 6 * SCALE
     );
     ctx.strokeStyle = P.line;
@@ -726,9 +726,11 @@ function renderAll() {
 // ----------------------------------------------------
 // Run
 // ----------------------------------------------------
-if (require.main === module) {
-  renderAll();
-}
+// Note: In ES modules, use import.meta.url instead of require.main === module
+// This block is kept for potential CommonJS compatibility but commented out
+// if (require.main === module) {
+//   renderAll();
+// }
 
 export { renderStickCowperson, buildTraits, ANIMATIONS };
 
