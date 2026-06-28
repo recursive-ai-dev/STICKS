@@ -1,50 +1,69 @@
 /**
  * logic_chain_base.js
  * Base class for all deterministic Logic Chains in STICKS: Godfall Echoes.
- * Provides observability, correlation tracking, and structured execution.
+ * Provides observability, correlation tracking, structured execution, and transactional outbox.
  */
 
 import { RealWorldProvider } from './determinism_provider.js';
 
+/**
+ * Represents a logic chain with built-in observability and determinism.
+ * Logic chains are the atomic units of complex game logic.
+ */
 export class LogicChainBase {
+  /**
+   * @param {string} name - The human-readable name of the chain.
+   * @param {string} version - The version of the logic implemented.
+   * @param {Object} [config={}] - Configuration and dependency injection.
+   * @param {import('./determinism_provider.js').DeterminismProvider} [config.determinismProvider]
+   * @param {Function} [config.logger] - Custom logger function.
+   * @param {string} [config.session_id] - Session identifier for cross-chain tracing.
+   */
   constructor(name, version, config = {}) {
     this.chainName = name;
     this.version = version;
 
-    // Injected provider for determinism
+    // Injected provider for determinism (RNG, Clock, IDs)
     this.determinismProvider = config.determinismProvider || new RealWorldProvider();
 
-    // Legacy support for individual providers if passed
-    this.idProvider = config.idProvider || (() => this.determinismProvider.nextId());
+    // Standardized providers derived from determinismProvider
+    this.idProvider = config.idProvider || ((prefix) => this.determinismProvider.nextId(prefix));
     this.timeProvider = config.timeProvider || (() => this.determinismProvider.toISOString());
-    this.logger = config.logger || ((log) => console.log(`[LOG_CHAIN] ${JSON.stringify(log)}`));
+    this.logger = config.logger || ((log) => console.log(`[LOG_CHAIN][${log.chain_name}] ${JSON.stringify(log)}`));
 
-    // Context tracking for observability
+    // Session-level context for tracing
     this.sessionContext = {
       session_id: config.session_id || null,
       actor_id: config.actor_id || null,
-      request_id: config.request_id || null
+      request_id: config.request_id || this.idProvider('req')
     };
 
-    // Per-correlation context tracking
+    // Per-correlation context tracking for nested or concurrent chains
     this.chainContexts = new Map(); // correlation_id -> context object
 
-    // Idempotency Ledger (At-Least-Once Reality Hardener)
+    // Idempotency Ledger (Ensures At-Least-Once delivery doesn't cause double processing)
     this.idempotencyLedger = new Map();
 
-    // Latency tracking
+    // Latency tracking per correlation
     this.chainStartTimes = new Map(); // correlation_id -> start_timestamp
+
+    // Transactional Outbox for event sourcing and reliable publishing
+    this.outbox = [];
   }
 
   /**
-   * Generates a correlation ID if one isn't provided.
+   * Generates or retrieves a correlation ID.
+   * @param {string} [cid] - Existing correlation ID to reuse.
+   * @returns {string}
    */
   getCorrelationId(cid) {
-    return cid || this.idProvider();
+    return cid || this.idProvider('cor');
   }
 
   /**
    * Sets context for a specific correlation ID.
+   * @param {string} correlation_id
+   * @param {Object} context
    */
   setChainContext(correlation_id, context) {
     this.chainContexts.set(correlation_id, {
@@ -54,8 +73,12 @@ export class LogicChainBase {
   }
 
   /**
-   * Logs a step in the logic chain with a standard format.
+   * Logs a step in the logic chain with standardized metadata.
    * Enforces the Observability Contract.
+   * @param {string} correlation_id
+   * @param {string} step - The name of the step (e.g., START, VALIDATE, END).
+   * @param {string} outcome - SUCCESS, ERROR, or SKIPPED.
+   * @param {Object} [data={}] - Domain-specific data for the log.
    */
   logStep(correlation_id, step, outcome, data = {}) {
     const now = this.determinismProvider.now();
@@ -71,7 +94,7 @@ export class LogicChainBase {
     const context = this.chainContexts.get(correlation_id) || this.sessionContext;
 
     const logEntry = {
-      // Required fields
+      // Logic Chain Identity
       correlation_id,
       chain_name: this.chainName,
       version: this.version,
@@ -79,7 +102,7 @@ export class LogicChainBase {
       outcome,
       latency_ms,
 
-      // Domain-specific fields
+      // Trace Context
       ...context,
       idempotency_key: data.idempotency_key || context.idempotency_key || null,
       causal_event_id: data.causal_event_id || context.causal_event_id || null,
@@ -89,19 +112,19 @@ export class LogicChainBase {
       ...data
     };
 
-    // Ensure error metadata is top-level if provided in data
+    // Standardized error fields
     if (data.error_class) logEntry.error_class = data.error_class;
     if (data.retryable !== undefined) logEntry.retryable = data.retryable;
     if (data.cause_type) logEntry.cause_type = data.cause_type;
 
     this.logger(logEntry);
 
-    // Dispatch event for UI if in browser
+    // Browser-specific event dispatching for UI debuggers
     if (typeof window !== 'undefined' && window.dispatchEvent) {
       window.dispatchEvent(new CustomEvent('logic-chain-event', { detail: logEntry }));
     }
 
-    // Clean up tracking on terminal steps
+    // Clean up tracking on terminal steps to prevent memory leaks
     if (step === "END") {
       this.chainStartTimes.delete(correlation_id);
       this.chainContexts.delete(correlation_id);
@@ -109,7 +132,13 @@ export class LogicChainBase {
   }
 
   /**
-   * Executes a step with built-in logging and latency tracking.
+   * Executes a step with automatic logging and performance tracking.
+   * @template T
+   * @param {string} cid - Correlation ID.
+   * @param {string} stepName
+   * @param {() => T} fn - The logic to execute.
+   * @returns {T}
+   * @throws {BaseChainError}
    */
   executeStep(cid, stepName, fn) {
     const stepStart = this.determinismProvider.now();
@@ -117,37 +146,34 @@ export class LogicChainBase {
       const result = fn();
       const stepLatency = this.determinismProvider.now() - stepStart;
       this.logStep(cid, stepName, "SUCCESS", {
-        ...(result || {}),
+        ...(typeof result === 'object' && result !== null ? result : { result }),
         step_latency_ms: stepLatency
       });
       return result;
     } catch (error) {
       const stepLatency = this.determinismProvider.now() - stepStart;
-      // First log: technical error details
-      this.logStep(cid, stepName, "ERROR", {
-        error_classification: error.code || 'UNKNOWN_ERROR',
-        error_message: error.message,
-        preserved_cause: error.cause || null,
-        step_latency_ms: stepLatency
-      });
-      // Second log: structured error data for observability
-      const errorData = {
+
+      const errorPayload = {
         error: error.message,
-        code: error.code,
-        error_class: error.errorClass || 'UNKNOWN',
+        code: error.code || 'UNKNOWN_ERROR',
+        error_class: error.errorClass || 'TECHNICAL',
         retryable: error.retryable || false,
-        cause_type: error.causeType || 'INTERNAL'
+        cause_type: error.causeType || 'INTERNAL',
+        step_latency_ms: stepLatency
       };
-      this.logStep(cid, stepName, "ERROR", errorData);
+
+      this.logStep(cid, stepName, "ERROR", errorPayload);
       throw error;
     }
   }
 
   /**
-   * Idempotency Check
-   * Returns the cached result if the key has already been processed.
+   * Checks if an operation with the given idempotency key has already been processed.
+   * @param {string} idempotencyKey
+   * @returns {Object|null} The cached result if hit, otherwise null.
    */
   checkIdempotency(idempotencyKey) {
+    if (!idempotencyKey) return null;
     if (this.idempotencyLedger.has(idempotencyKey)) {
       const cached = this.idempotencyLedger.get(idempotencyKey);
       this.logStep(cached.correlationId, "IDEMPOTENCY_HIT", "SUCCESS", {
@@ -160,7 +186,9 @@ export class LogicChainBase {
   }
 
   /**
-   * Marks a request as processed in the ledger.
+   * Records a processed request in the idempotency ledger.
+   * @param {string} idempotencyKey
+   * @param {Object} result
    */
   markProcessed(idempotencyKey, result) {
     if (idempotencyKey) {
@@ -169,19 +197,16 @@ export class LogicChainBase {
   }
 
   /**
-   * Commits an event to the outbox for eventual consistency / event sourcing.
-   * This enables reliable event publishing after successful transaction completion.
-   * @param {string} correlationId - The correlation ID for tracing
-   * @param {string} eventType - The type of event being published
-   * @param {string} version - The schema version of the event
-   * @param {object} payload - The event payload data
+   * Commits an event to the outbox. Events are only dispatched if the chain completes.
+   * @param {string} correlationId
+   * @param {string} eventType
+   * @param {string} version - Schema version of the event.
+   * @param {Object} payload
+   * @returns {Object} The created event object.
    */
   commitToOutbox(correlationId, eventType, version, payload) {
-    if (!this.outbox) {
-      this.outbox = [];
-    }
     const event = {
-      eventId: this.idProvider(),
+      eventId: this.idProvider('evt'),
       correlationId,
       eventType,
       version,
@@ -192,33 +217,34 @@ export class LogicChainBase {
     };
     this.outbox.push(event);
     
-    // Log the event commitment for observability
     this.logStep(correlationId, "OUTBOX_COMMIT", "SUCCESS", {
       event_type: eventType,
       event_id: event.eventId
     });
     
+    // In browser, also dispatch as a window event for immediate consumption by UI systems
+    if (typeof window !== 'undefined' && window.dispatchEvent) {
+      window.dispatchEvent(new CustomEvent('outbox-debug-event', { detail: event }));
+    }
+
     return event;
   }
 
   /**
-   * Retrieves and clears the outbox, returning all pending events.
-   * @returns {Array} Array of pending events
+   * Retrieves and clears the outbox. Typically called by the orchestration layer.
+   * @returns {Array<Object>}
    */
   flushOutbox() {
-    if (!this.outbox || this.outbox.length === 0) {
-      return [];
-    }
     const events = [...this.outbox];
     this.outbox = [];
     return events;
   }
 
   /**
-   * Gets the current outbox without clearing it.
-   * @returns {Array} Array of pending events
+   * Peek at the current outbox without clearing it.
+   * @returns {Array<Object>}
    */
   getOutbox() {
-    return this.outbox || [];
+    return [...this.outbox];
   }
 }

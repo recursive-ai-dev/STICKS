@@ -1,12 +1,20 @@
 #!/usr/bin/env node
-// apply_godfall_theme.js
-// Lightweight post-processor: tints and overlays generated PNGs to match Godfall visual themes.
-// Non-destructive: reads from an input directory and writes to an output directory.
+/**
+ * apply_godfall_theme.js
+ * Lightweight post-processor: tints and overlays generated PNGs to match Godfall visual themes.
+ * Converted to ESM for consistency.
+ */
 
-const fs = require('fs');
-const path = require('path');
-const { createCanvas, loadImage } = require('canvas');
+import fs from 'fs';
+import path from 'path';
+import { createCanvas, loadImage } from 'canvas';
 
+/**
+ * Utility to get command line arguments.
+ * @param {string} name
+ * @param {string} def
+ * @returns {string}
+ */
 function getArg(name, def) {
   const i = process.argv.indexOf(`--${name}`);
   if (i !== -1 && process.argv[i+1]) return process.argv[i+1];
@@ -25,13 +33,18 @@ const THEMES = {
 };
 
 if (!fs.existsSync(INPUT)) {
-  console.error('Input directory not found:', INPUT);
+  console.error('[GodfallTheme] Input directory not found:', INPUT);
   process.exit(1);
 }
 if (!fs.existsSync(OUTPUT)) fs.mkdirSync(OUTPUT, { recursive: true });
 
 const theme = THEMES[THEME] || THEMES.divine_corruption;
 
+/**
+ * Recursively lists all PNG files in a directory.
+ * @param {string} dir
+ * @returns {Array<string>}
+ */
 function listPngFiles(dir) {
   const out = [];
   const ents = fs.readdirSync(dir, { withFileTypes: true });
@@ -43,6 +56,10 @@ function listPngFiles(dir) {
   return out;
 }
 
+/**
+ * Processes a single PNG file applying the theme.
+ * @param {string} file
+ */
 async function processFile(file) {
   try {
     const img = await loadImage(file);
@@ -74,21 +91,20 @@ async function processFile(file) {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
     const buf = canvas.toBuffer('image/png');
     fs.writeFileSync(outPath, buf);
-    console.log('Themed:', rel);
+    console.log(`[GodfallTheme] Processed: ${rel}`);
   } catch (err) {
-    console.error('Failed to process', file, err.message);
+    console.error(`[GodfallTheme] Failed to process ${file}:`, err.message);
   }
 }
 
 (async () => {
   const files = listPngFiles(INPUT);
   if (files.length === 0) {
-    console.log('No PNG files found in', INPUT);
+    console.log('[GodfallTheme] No PNG files found in', INPUT);
     process.exit(0);
   }
   for (const f of files) {
-    // eslint-disable-next-line no-await-in-loop
     await processFile(f);
   }
-  console.log('\nDone. Themed assets written to', OUTPUT);
+  console.log(`\n[GodfallTheme] Done. Themed assets written to ${OUTPUT}`);
 })();

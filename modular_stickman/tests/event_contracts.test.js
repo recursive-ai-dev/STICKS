@@ -54,10 +54,15 @@ async function runTests() {
     const detachResult = detachService.detachLimb(stickman, "rightArm", 50, detachCid);
     const detachEvent = detachService.getOutbox()[0];
 
-    // Note: LimbDetachmentService doesn't emit outbox events yet - this is a future enhancement
-    // For now we just verify the detachment succeeded
     assert.strictEqual(detachResult.success, true);
     assert.strictEqual(detachResult.state, "DETACHED");
+
+    // Now verifying outbox event exists and matches schema
+    assert.strictEqual(detachEvent.eventType, "LimbDetached");
+    assert.strictEqual(detachEvent.version, "1.0");
+    assert.strictEqual(detachEvent.payload.stickman_id, sm.id);
+    assert.strictEqual(detachEvent.payload.limb_id, "rightArm");
+
     console.log("  ✅ LimbDetached contract passed");
 
     console.log("--- ALL EVENT CONTRACT TESTS PASSED ---");

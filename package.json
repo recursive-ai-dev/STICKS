@@ -5,7 +5,7 @@
   "type": "module",
   "main": "modular_stickman/game.js",
   "dependencies": {
-    "canvas": "3.1.2",
+    "canvas": "^3.1.2",
     "matter-js": "^0.20.0",
     "upng-js": "2.1.0"
   },
@@ -17,5 +17,8 @@
     "generate:moonwalk": "node modular_stickman/procedural_animation_generator.js moonwalk",
     "ux:generate": "node ux/run_ux_systems.js",
     "test": "node modular_stickman/tests/limb_detachment.test.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
   }
 }

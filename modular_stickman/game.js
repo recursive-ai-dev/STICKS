@@ -1,6 +1,8 @@
-// game.js
-// Main game entry point for STICKS: Godfall Echoes
-// Integrates physics, animation, and Godfall delusion systems
+/**
+ * game.js
+ * Main game entry point for STICKS: Godfall Echoes.
+ * Integrates physics, animation, and Godfall delusion systems.
+ */
 
 import pkg from 'matter-js';
 const { Engine } = pkg;
@@ -10,11 +12,17 @@ import { RealWorldProvider } from './determinism_provider.js';
 import { AutonomousManager } from './autonomous_manager.js';
 import { StickmanGenerationService } from './stickman_generation_service.js';
 
-// Game state
+/**
+ * Main game controller.
+ */
 class StickGame {
+  /**
+   * @param {Object} [config={}]
+   * @param {import('./determinism_provider.js').DeterminismProvider} [config.determinismProvider]
+   */
   constructor(config = {}) {
-    this.canvas = document.getElementById('gameCanvas');
-    if (!this.canvas) {
+    this.canvas = typeof document !== 'undefined' ? document.getElementById('gameCanvas') : null;
+    if (!this.canvas && typeof document !== 'undefined') {
       this.canvas = document.createElement('canvas');
       this.canvas.id = 'gameCanvas';
       this.canvas.width = 800;
@@ -23,7 +31,8 @@ class StickGame {
     }
 
     this.determinismProvider = config.determinismProvider || new RealWorldProvider();
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
+
     this.physics = new StickmanPhysics('gameCanvas', {
         determinismProvider: this.determinismProvider
     });
@@ -39,22 +48,28 @@ class StickGame {
     this.debugMode = false;
     this.debugEvents = [];
 
-    this.autonomousManager = new AutonomousManager(this);
+    this.autonomousManager = new AutonomousManager(this, {
+        determinismProvider: this.determinismProvider
+    });
     
-    // Setup listeners BEFORE init so we catch the first generation event
     this.setupEventListeners();
     this.init();
   }
 
+  /**
+   * Initializes the game state.
+   */
   init() {
     this.generationService.generateStickman(400, 100);
-    this.physics.startWorldPulseTimer();
     this.gameRunning = true;
     if (typeof requestAnimationFrame !== 'undefined') {
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
     }
   }
 
+  /**
+   * Configures global event listeners.
+   */
   setupEventListeners() {
     if (typeof window !== 'undefined') {
       window.addEventListener('outbox-debug-event', (e) => {
@@ -65,28 +80,49 @@ class StickGame {
       window.addEventListener('keydown', (e) => {
         if (e.key === '`' || e.code === 'Backquote') {
           this.debugMode = !this.debugMode;
-          console.log('Debugger Toggled:', this.debugMode);
+          console.log('[StickGame] Debugger Toggled:', this.debugMode);
+        } else if (e.code === 'Space') {
+            this.physics.triggerDelusionBurst();
         }
       });
     }
   }
 
+  /**
+   * Main game loop.
+   * @param {number} timestamp
+   */
   gameLoop(timestamp) {
     if (!this.gameRunning) return;
-    this.deltaTime = timestamp - this.lastTime;
-    this.lastTime = timestamp;
-    const physicsDelta = 1000 / 60;
-    Engine.update(this.physics.engine, physicsDelta);
-    if (this.autonomousManager.checkTrigger(timestamp, this.physics.stickmen.length)) {
-        this.autonomousManager.executeGeneration();
-    }
-    this.render();
-    if (typeof requestAnimationFrame !== 'undefined') {
-        requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+
+    try {
+        this.deltaTime = timestamp - (this.lastTime || timestamp);
+        this.lastTime = timestamp;
+
+        // Fixed physics timestep for determinism
+        const physicsDelta = 1000 / 60;
+        Engine.update(this.physics.engine, physicsDelta);
+
+        if (this.autonomousManager.checkTrigger(timestamp, this.physics.stickmen.length)) {
+            this.autonomousManager.executeGeneration();
+        }
+
+        this.render();
+
+        if (typeof requestAnimationFrame !== 'undefined') {
+            requestAnimationFrame((ts) => this.gameLoop(ts));
+        }
+    } catch (error) {
+        console.error("[StickGame] Fatal error in game loop:", error);
+        this.gameRunning = false;
     }
   }
 
+  /**
+   * Renders the current frame.
+   */
   render() {
+    if (!this.ctx) return;
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.drawBackground();
     this.physics.renderFrame(this.ctx, this.deltaTime);
@@ -94,6 +130,9 @@ class StickGame {
     this.drawDebugOverlay();
   }
 
+  /**
+   * Draws the atmospheric background.
+   */
   drawBackground() {
     const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
     gradient.addColorStop(0, '#1a1a2e');
@@ -102,6 +141,9 @@ class StickGame {
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
+  /**
+   * Draws the game UI.
+   */
   drawUI() {
     this.ctx.fillStyle = '#ffffff';
     this.ctx.font = '14px Arial';
@@ -111,6 +153,7 @@ class StickGame {
     this.ctx.fillText('- Mouse drag: Pull/throw limbs', 20, 60);
     this.ctx.fillText('- Space: Delusion Burst', 20, 80);
     this.ctx.fillText('- Q/E: Cycle attachments', 20, 100);
+
     if (this.physics.stickmen.length > 0) {
       const stickman = this.physics.stickmen[0];
       if (stickman.delusionTraits && stickman.delusionTraits.length > 0) {
@@ -121,6 +164,9 @@ class StickGame {
     this.ctx.fillText(`FPS: ${Math.round(1000 / this.deltaTime) || 0}`, this.canvas.width - 20, 20);
   }
 
+  /**
+   * Draws the developer debug overlay.
+   */
   drawDebugOverlay() {
     if (!this.debugMode) return;
     const h = this.canvas.height / 5;
@@ -135,7 +181,7 @@ class StickGame {
     this.ctx.textAlign = 'left';
     this.ctx.fillText('--- OUTBOX DEBUGGER (DEVELOPER MODE) ---', 10, y + 15);
     this.debugEvents.forEach((ev, i) => {
-      const text = `[${ev.event_name} v${ev.event_version}] cid:${ev.correlation_id.slice(0,8)} payload:${JSON.stringify(ev.payload).slice(0, 110)}`;
+      const text = `[${ev.eventType} v${ev.version}] cid:${ev.correlationId.slice(0,8)} payload:${JSON.stringify(ev.payload).slice(0, 110)}`;
       this.ctx.fillText(text, 10, y + 30 + (i * 11));
     });
   }
@@ -144,14 +190,21 @@ class StickGame {
   triggerDelusionBurst() { this.physics.triggerDelusionBurst(); }
   start() { this.gameRunning = true; if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame((t) => this.gameLoop(t)); }
   pause() { this.gameRunning = false; }
+
+  /**
+   * Resets the game session.
+   */
   reset() {
     this.physics.destroy();
     this.physics = new StickmanPhysics('gameCanvas', { determinismProvider: this.determinismProvider });
     this.generationService = new StickmanGenerationService(this.physics, { determinismProvider: this.determinismProvider });
+    this.autonomousManager = new AutonomousManager(this, { determinismProvider: this.determinismProvider });
     this.init();
   }
 }
+
 export { StickGame };
+
 if (typeof window !== 'undefined' && window.document) {
   window.addEventListener('DOMContentLoaded', () => { window.game = new StickGame(); });
 }

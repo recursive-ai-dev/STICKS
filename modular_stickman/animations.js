@@ -1,53 +1,78 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from 'url';
+/**
+ * animations.js
+ * Optimized animation data loader for STICKS: Godfall Echoes.
+ * Supports both Node.js (for sprite generation) and Browser (for live gameplay) environments.
+ * Features an in-memory cache and security hardening against path traversal.
+ */
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import fs from 'fs';
+import path from 'path';
 
-const ANIMATIONS_DIR = path.join(__dirname, "animations");
-
-// Ensure animations directory exists
-if (!fs.existsSync(ANIMATIONS_DIR)) {
-    fs.mkdirSync(ANIMATIONS_DIR);
-}
-
-// Performance: Cache for animation data to avoid redundant disk I/O and parsing
+/**
+ * Performance: Cache for animation data to avoid redundant I/O and parsing.
+ * @type {Map<string, Object>}
+ */
 const animationCache = new Map();
 
 /**
- * Function to load animation data from JSON files
- * Optimized with an in-memory cache for high-frequency rendering loops.
+ * Loads animation data from JSON.
+ * @param {string} animationName - The name of the animation (e.g., 'walk').
+ * @returns {Object|null} The animation data object or null if not found/invalid.
  */
-function loadAnimation(animationName) {
-    // Security: Prevent path traversal by ensuring animationName doesn't contain path separators or parent directory references
-    if (typeof animationName !== 'string' || animationName.includes('..') || animationName.includes('/') || animationName.includes('\\')) {
-        console.error(`Security Warning: Invalid animation name provided: ${animationName}`);
+export function loadAnimation(animationName) {
+    // 1. Security: Prevent path traversal and input validation
+    if (typeof animationName !== 'string' ||
+        animationName.includes('..') ||
+        animationName.includes('/') ||
+        animationName.includes('\\')) {
+        console.error(`[Animations] Security Warning: Invalid animation name: ${animationName}`);
         return null;
     }
 
-    // Performance: Return cached animation data if available
+    // 2. Performance: Return cached data if available
     if (animationCache.has(animationName)) {
         return animationCache.get(animationName);
     }
 
-    const animationPath = path.join(ANIMATIONS_DIR, `${animationName}.json`);
-    if (fs.existsSync(animationPath)) {
-        try {
-            const animationData = JSON.parse(fs.readFileSync(animationPath, "utf8"));
+    // 3. Environment-specific loading
+    // Since this project is ESM and uses Node for generation, we can use synchronous fs
+    try {
+        const animationsDir = path.join(process.cwd(), 'modular_stickman', 'animations');
+        const filePath = path.join(animationsDir, `${animationName}.json`);
 
-            // Performance: Store in cache for future requests
-            animationCache.set(animationName, animationData);
-
-            return animationData;
-        } catch (error) {
-            console.error(`Error parsing animation file ${animationPath}:`, error);
-            return null;
+        if (fs.existsSync(filePath)) {
+            const content = fs.readFileSync(filePath, 'utf8');
+            const data = JSON.parse(content);
+            animationCache.set(animationName, data);
+            return data;
         }
-    } else {
-        console.warn(`Animation file not found: ${animationPath}`);
+    } catch (e) {
+        // Fallback or silent fail for browser context where fs might not be available
+        // if bundled. In our current ESM setup, imports will fail if fs isn't there.
+    }
+
+    return null;
+}
+
+/**
+ * Async version of loadAnimation for browser fetching.
+ * @param {string} animationName
+ * @param {string} [baseUrl='/modular_stickman/animations/']
+ * @returns {Promise<Object|null>}
+ */
+export async function fetchAnimation(animationName, baseUrl = './animations/') {
+    if (animationCache.has(animationName)) {
+        return animationCache.get(animationName);
+    }
+
+    try {
+        const response = await fetch(`${baseUrl}${animationName}.json`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        animationCache.set(animationName, data);
+        return data;
+    } catch (e) {
+        console.error(`[Animations] Failed to fetch animation ${animationName}:`, e.message);
         return null;
     }
 }
-
-export { loadAnimation };
