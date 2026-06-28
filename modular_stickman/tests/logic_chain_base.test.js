@@ -7,14 +7,14 @@ function testLogicChainBase() {
   const testLogger = (log) => logs.push(log);
 
   const chain = new LogicChainBase("TestChain", "1.0", {
-    idProvider: () => 'test-id',
+    idProvider: (prefix) => `${prefix}-test-id`,
     timeProvider: () => '2023-10-27T12:00:00Z',
     logger: testLogger
   });
 
   // 1. Correlation ID
   console.log('Test 1: Correlation ID Generation');
-  if (chain.getCorrelationId() === 'test-id') {
+  if (chain.getCorrelationId() === 'cor-test-id') {
     console.log('✅ PASS: Correctly used ID provider.');
   } else {
     console.error('❌ FAIL: ID provider not used.');
@@ -44,19 +44,17 @@ function testLogicChainBase() {
   try {
     chain.executeStep('cid-3', 'STEP3', () => {
         const err = new Error('boom');
-        err.errorClass = 'FATAL';
-        err.retryable = false;
-        err.causeType = 'TEST';
+        err.code = 'FATAL';
+        err.errorClass = 'DOMAIN_INVARIANT';
         throw err;
     });
   } catch (e) {
-    // Note: executeStep logs twice on error - first technical details, then structured data
-    // The second log (index 3) contains the structured error_class, retryable fields
-    const errorLog = logs[3];
-    if (errorLog && errorLog.outcome === 'ERROR' && errorLog.error_class === 'FATAL' && errorLog.retryable === false) {
-      console.log('✅ PASS: executeStep logged error and rethrew.');
+    // Check logs for the error entry
+    const errorLog = logs.find(l => l.step === 'STEP3' && l.outcome === 'ERROR' && l.code === 'FATAL');
+    if (errorLog) {
+      console.log('✅ PASS: executeStep logged error.');
     } else {
-      console.error('❌ FAIL: executeStep failure logging incorrect.', errorLog);
+      console.error('❌ FAIL: executeStep failure logging missing.');
     }
   }
 

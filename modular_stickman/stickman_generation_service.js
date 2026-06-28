@@ -7,14 +7,25 @@
 import { LogicChainBase } from './logic_chain_base.js';
 import { buildTraits } from './cowboy_modular_generator.js';
 
+/**
+ * Service for orchestrating stickman creation.
+ */
 export class StickmanGenerationService extends LogicChainBase {
+    /**
+     * @param {import('./physics_engine.js').StickmanPhysics} physics
+     * @param {Object} [config={}]
+     */
     constructor(physics, config = {}) {
-        super("Stickman Generation", "1.1", config);
+        super("Stickman Generation", "1.2", config);
         this.physics = physics;
     }
 
     /**
      * Orchestrates the stickman generation logic chain.
+     * @param {number} x
+     * @param {number} y
+     * @param {string} [correlationId]
+     * @returns {Object} The generated stickman.
      */
     generateStickman(x, y, correlationId = null) {
         const cid = this.getCorrelationId(correlationId);
@@ -24,8 +35,9 @@ export class StickmanGenerationService extends LogicChainBase {
         try {
             // 1. Build Base Unit (Traits/Character Definition)
             const character = this.executeStep(cid, "BUILD_TRAITS", () => {
-                const id = `stickman_${this.idProvider().slice(0, 8)}`;
+                const id = `stickman_${this.idProvider('sm').slice(0, 8)}`;
                 const mockCharacter = { id, type: 'cowboy' };
+                // Traits builder should ideally also be deterministic if we pass the RNG
                 const traits = buildTraits(mockCharacter);
                 return { id, traits };
             });
@@ -71,7 +83,7 @@ export class StickmanGenerationService extends LogicChainBase {
         } catch (error) {
             this.logStep(cid, "END", "ERROR", {
                 message: error.message,
-                correlationId: cid
+                correlation_id: cid
             });
             throw error;
         }

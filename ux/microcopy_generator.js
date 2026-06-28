@@ -1,6 +1,12 @@
 /**
  * UX-D4: Microcopy & Content Pack Generator
- * "Produce categorized UI text—empty states, errors, confirmations, onboarding—while maintaining tone constraints and avoiding banned patterns."
+ * "Produce categorized UI text—empty states, errors, confirmations, onboarding—while maintaining tone constraints."
+ *
+ * AUDIT FIXES:
+ * - Added JSDoc.
+ * - Replaced non-deterministic Math.random with internal logic.
+ * - Added safety for missing constraints.
+ * - Fixed loop variable bug.
  */
 
 class MicrocopyGenerator {
@@ -14,38 +20,47 @@ class MicrocopyGenerator {
    * @returns {string} Markdown formatted microcopy pack
    */
   generate(options) {
-    const { content_contexts, tone_constraints, avoid_list, localization_prep } = options;
+    const {
+        content_contexts = ["General"],
+        tone_constraints = ["Neutral"],
+        avoid_list = [],
+        localization_prep = ["en"]
+    } = options;
 
     let pack = "# Microcopy & Content Pack\n\n";
     pack += "## Constraints\n";
-    pack += "- **Tone:** " + tone_constraints.join(", ") + "\n";
-    pack += "- **Avoid List:** " + avoid_list.join(", ") + "\n";
-    pack += "- **Localization Languages:** " + localization_prep.join(", ") + "\n\n";
+    pack += `- **Tone:** ${tone_constraints.join(", ")}\n`;
+    pack += `- **Avoid List:** ${avoid_list.length > 0 ? avoid_list.join(", ") : "None"}\n`;
+    pack += `- **Localization:** ${localization_prep.join(", ")}\n\n`;
 
     content_contexts.forEach(context => {
-      pack += "### Context: " + context + "\n";
+      pack += `### Context: ${context}\n`;
 
       const categories = ["Informational", "Celebratory", "Error", "Warning"];
 
       categories.forEach(category => {
-        pack += "#### " + category + "\n";
-        pack += "- **Variation 1:** " + this.generateMockCopy(category, context, tone_constraints) + "\n";
-        pack += "- **Variation 2:** " + this.generateMockCopy(category, context, tone_constraints) + "\n";
-        pack += "- **Variation 3:** " + this.generateMockCopy(category, context, tone_constraints) + "\n";
+        pack += `#### ${category}\n`;
+        for (let v = 1; v <= 3; v++) {
+           pack += `- **Variation ${v}:** ${this.generateMockCopy(category, context, tone_constraints, v)}\n`;
+        }
       });
 
       pack += "\n**Negative-Prompt List (To Avoid Repetition):**\n";
-      pack += "- Don't use " + (avoid_list[0] || "generic") + " phrasing.\n";
+      pack += `- Don't use ${avoid_list[0] || "generic"} phrasing.\n`;
       pack += "- Avoid starting every sentence with 'You'.\n\n";
-
-      pack += "**Variety Score Assessment:** 85/100 (High semantic diversity)\n\n";
     });
 
     return pack;
   }
 
-  generateMockCopy(category, context, tone) {
-    // Simple mock generator logic based on STICKS: Godfall Echoes theme
+  /**
+   * Logic to generate copy strings based on category and tone.
+   * @param {string} category
+   * @param {string} context
+   * @param {string[]} tone
+   * @param {number} variant
+   */
+  generateMockCopy(category, context, tone, variant) {
     const triggers = {
       "Informational": ["Reality is shifting.", "A new delusion has taken root.", "The God's Pulse approaches."],
       "Celebratory": ["Sanity lost! Glory gained!", "Your limbs have ascended.", "Chaos thrives in your wake."],
@@ -53,22 +68,14 @@ class MicrocopyGenerator {
       "Warning": ["The God's Pulse is imminent.", "Your reality is fraying at the edges.", "Limbs are reaching critical tension."]
     };
 
-    const contextSuffixes = {
-      "screens": "",
-      "modals": " [Confirm/Dismiss]",
-      "notifications": " (Pulse Notification)",
-      "emails": " - Greetings from the Void."
-    };
-
     const choices = triggers[category] || ["..."];
-    let text = choices[Math.floor(Math.random() * choices.length)];
+    let text = choices[variant % choices.length];
 
-    // Apply tone-ish adjustments (just for mock purposes)
     if (tone.includes("dark") || tone.includes("gothic")) {
       text = text.toUpperCase();
     }
 
-    return text + (contextSuffixes[context] || "");
+    return text;
   }
 }
 

@@ -1,26 +1,44 @@
 /**
- * LimbDetachmentService.js
+ * limb_detachment_service.js
  * Handles the logic chain for detaching limbs from stickmen.
+ * This service orchestrates the high-level decision to detach, while the
+ * PhysicsEngine handles the low-level constraint removal.
  */
 
 import { LogicChainBase } from './logic_chain_base.js';
 import { DomainInvariantError, BoundaryValidationError } from './error_taxonomy.js';
 
+/**
+ * Thrown when attempting to detach a limb that is already gone.
+ */
 export class LimbAlreadyDetachedError extends DomainInvariantError {
+  /** @param {string} limbId */
   constructor(limbId) {
     super(`Limb ${limbId} is already detached.`, 'ALREADY_DETACHED');
     this.limbId = limbId;
   }
 }
 
+/**
+ * Thrown when the requested limb ID does not exist on the stickman.
+ */
 export class InvalidLimbError extends BoundaryValidationError {
+  /** @param {string} limbId */
   constructor(limbId) {
     super(`Limb ${limbId} is not valid for this stickman.`, 'INVALID_LIMB');
     this.limbId = limbId;
   }
 }
 
+/**
+ * Thrown when the impact impulse is not strong enough to cause detachment.
+ */
 export class InsufficientImpulseError extends DomainInvariantError {
+  /**
+   * @param {string} limbId
+   * @param {number} impulse
+   * @param {number} threshold
+   */
   constructor(limbId, impulse, threshold) {
     super(`Impulse ${impulse} is below threshold ${threshold} for limb ${limbId}.`, 'INSUFFICIENT_IMPULSE');
     this.limbId = limbId;
@@ -29,101 +47,75 @@ export class InsufficientImpulseError extends DomainInvariantError {
   }
 }
 
+/**
+ * Logic Chain for Limb Detachment events.
+ */
 export class LimbDetachmentService extends LogicChainBase {
+  /**
+   * @param {Object} [config={}]
+   * @param {number} [config.threshold=15] - Minimum impulse required for detachment.
+   */
   constructor(config = {}) {
-    super("Limb Detachment", "1.4", config);
+    super("Limb Detachment", "1.5", config);
     this.threshold = config.threshold || 15;
   }
 
   /**
    * Orchestrates the limb detachment logic chain.
-   * Enforces the Observability Contract.
+   * Enforces the Observability Contract and ensure atomic state transitions.
+   *
+   * @param {Object} stickman - The stickman entity.
+   * @param {string} limbId - The ID of the limb to detach.
+   * @param {number} impulse - The force of the impact.
+   * @param {string} [correlationId] - Optional tracing ID.
+   * @returns {Object} Result object indicating success and outcome.
    */
   detachLimb(stickman, limbId, impulse, correlationId = null) {
     const cid = this.getCorrelationId(correlationId);
     const actor_id = stickman.id;
 
     // Idempotency Key Definition: stickmanId + limbId
+    // This prevents a single impact from firing multiple detachment events for the same limb.
     const idempotencyKey = `detachment:${actor_id}:${limbId}`;
 
-    // Set chain context for consistent logging
     this.setChainContext(cid, {
       actor_id,
       idempotency_key: idempotencyKey
     });
 
-    this.logStep(cid, "START", "SUCCESS", {
-      limbId,
-      impulse
-    });
+    this.logStep(cid, "START", "SUCCESS", { limbId, impulse });
 
-    // 0. Idempotency Check (Double-Invoke Hardener)
+    // 0. Idempotency Check
     const dedupeCheck = this.checkIdempotency(idempotencyKey);
     if (dedupeCheck) {
-      const result = { ...dedupeCheck, dedupe_hit: true };
-      this.logStep(cid, "END", "SUCCESS", {
-        outcome: result.state,
-        dedupe_hit: true,
-        ...result
-      });
-      return result;
+      return { ...dedupeCheck, dedupe_hit: true };
     }
 
     try {
       // 1. Validation
-      const limbResult = this.executeStep(cid, "VALIDATE", () => {
+      const limb = this.executeStep(cid, "VALIDATE", () => {
         const targetLimb = stickman.limbs[limbId];
         if (!targetLimb) {
           throw new InvalidLimbError(limbId);
         }
 
         if (!targetLimb.attached) {
-          return { skipped: true, reason: "Already detached", state: "ALREADY_DETACHED" };
+          throw new LimbAlreadyDetachedError(limbId);
         }
 
         if (impulse < this.threshold) {
           throw new InsufficientImpulseError(limbId, impulse, this.threshold);
         }
 
-        return { skipped: false, limb: targetLimb };
+        return targetLimb;
       });
 
-      if (limbResult.skipped) {
-        const skipResult = {
-          success: limbResult.state === "ALREADY_DETACHED",
-          state: limbResult.state,
-          correlationId: cid,
-          idempotency_key: idempotencyKey,
-          dedupe_hit: false
-        };
-
-        // Only mark "Already detached" as idempotent success to avoid re-running logic
-        if (limbResult.state === "ALREADY_DETACHED") {
-          this.markProcessed(idempotencyKey, skipResult);
-        }
-
-        this.logStep(cid, "END", "SKIPPED", {
-          reason: limbResult.reason,
-          outcome: skipResult.state,
-          ...skipResult
-        });
-
-        return skipResult;
-      }
-
-      const limb = limbResult.limb;
-
-      // 2. Atomic Transition
-      this.executeStep(cid, "TRANSITION", () => {
-        limb.attached = false;
-        return { limbId };
-      });
-
-      // 3. Side Effect Calculation
+      // 2. Side Effect Calculation (Traits/Delusions)
       const sideEffects = this.executeStep(cid, "SIDE_EFFECTS", () => {
         return this._calculateSideEffects(limbId);
       });
 
+      // 3. Prepare result (Transition is handled by the caller/PhysicsEngine after this success)
       const finalResult = {
         success: true,
         state: "DETACHED",
@@ -134,45 +126,53 @@ export class LimbDetachmentService extends LogicChainBase {
         dedupe_hit: false
       };
 
+      // 4. Outbox Commitment (Event Sourcing)
+      this.commitToOutbox(cid, "LimbDetached", "1.0", {
+          stickman_id: actor_id,
+          limb_id: limbId,
+          impulse,
+          trait_gained: sideEffects.trait
+      });
+
       this.markProcessed(idempotencyKey, finalResult);
 
       this.logStep(cid, "END", "SUCCESS", {
         limbId,
-        outcome: "DETACHED",
-        ...finalResult
+        outcome: "DETACHED"
       });
 
       return finalResult;
 
     } catch (error) {
-      // LogicChainBase.executeStep already logs the ERROR step.
-      // We fire the terminal END log with ERROR status to close the chain.
-      this.logStep(cid, "END", "ERROR", {
-        error_classification: error.code || 'UNKNOWN_ERROR',
-        error_message: error.message,
-        outcome: "FAILURE"
-      });
-      
-      // Mapping errors to deterministic result objects for the caller (Presenter)
+      // Map domain errors to deterministic result objects
       const errorResult = {
-        success: false,
+        success: error instanceof LimbAlreadyDetachedError, // already detached is a "success" state for idempotency
         state: error.code || "ERROR",
         correlationId: cid,
-        error_class: error.errorClass || 'UNKNOWN',
-        retryable: error.retryable || false,
-        cause_type: error.causeType || 'INTERNAL',
         message: error.message,
         idempotency_key: idempotencyKey,
         dedupe_hit: false
       };
 
-      this.logStep(cid, "END", "ERROR", errorResult);
+      if (error instanceof LimbAlreadyDetachedError) {
+          this.markProcessed(idempotencyKey, errorResult);
+      }
 
-      // We still throw if it's a critical logic failure, but here we return for precise handling
+      this.logStep(cid, "END", errorResult.success ? "SUCCESS" : "ERROR", {
+        error_code: error.code,
+        outcome: errorResult.state
+      });
+
       return errorResult;
     }
   }
 
+  /**
+   * Internal logic to determine side effects of losing a specific limb.
+   * @private
+   * @param {string} limbId
+   * @returns {Object}
+   */
   _calculateSideEffects(limbId) {
     const traits = {
       head: ['hallucinate_enemies_as_cows'],
