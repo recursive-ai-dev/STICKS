@@ -1,19 +1,53 @@
-*.png
-modular_stickman/.env
-stickemup_generator.code-workspace
-GODFALL_INTEGRATION_GUIDE.md
-godfall/INTEGRATION_README.md
-/godfall/01_Core_Mythology
-/godfall/02_World_Structure
-/godfall/03_History
-/godfall/04_Species
-/godfall/05_Factions
-/godfall/06_Magic_System
-/godfall/07_Geography
-/godfall/08_Language
-/godfall/09_Delusion_Manifestations
-/godfall/10_Religion
-/godfall/11_Artifacts
-/godfall/12_Notable_Figures
+# Examples
 
-node_modules/
+    Input:
+    ### Added files:
+    [src/main.py, README.md, config.json]
+
+    ### Deleted files:
+    [old/unused.py]
+    ### Modified files:
+    [utils.py]
+    ###current .gitignore Content
+    (empty)
+    Expected Output:
+    (empty — output nothing)
+
+# Example 2 (Project with artifacts):
+Input:
+### Added files:
+[pycache/main.cpython-310.pyc, dist/app.js, .env.local, .vscode/settings.json
+
+### Deleted files:
+    []
+
+### Modified files:
+[]
+### current .gitignore Content
+*.log
+Expected Output:
+    #Compiled and build artifacts
+    *.pyc
+    pycache/
+    *.o
+    *.obj
+    dist/
+    build/
+    #Dependencies
+    .venv/
+    venv/
+    node_modules/
+    #Logs and temp files
+    *.log
+    *.tmp
+    *.swp
+    #Environment
+    .env
+    .env.local
+    .env.
+    #Editors
+    .vscode/
+    .idea/
+    #Original rules preserved
+    *.log
+Final reminder: Output ONLY the .gitignore content. If nothing should be ignored, output NOTHING.
