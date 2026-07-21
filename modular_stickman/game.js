@@ -103,7 +103,7 @@ class StickGame {
         const physicsDelta = 1000 / 60;
         Engine.update(this.physics.engine, physicsDelta);
 
-        if (this.autonomousManager.checkTrigger(timestamp, this.physics.stickmen.length)) {
+        if (this.autonomousManager.checkTrigger(this.deltaTime, this.physics.stickmen.length)) {
             this.autonomousManager.executeGeneration();
         }
 

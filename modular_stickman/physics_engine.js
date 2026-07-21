@@ -51,11 +51,16 @@ class MadnessField {
    * Updates field state.
    * @param {number} deltaTime
    * @param {number} stickmanCount
+   * @param {boolean} isBursting
    */
-  update(deltaTime, stickmanCount) {
+  update(deltaTime, stickmanCount, isBursting = false) {
     this.time += deltaTime;
     // Intensity scales with the number of stickmen or other chaos factors
-    this.intensity = Math.min(1.0, 0.2 + (stickmanCount * 0.1));
+    if (isBursting) {
+      this.intensity = 2.0;
+    } else {
+      this.intensity = Math.min(1.0, 0.2 + (stickmanCount * 0.1));
+    }
   }
 
   /**
@@ -68,10 +73,14 @@ class MadnessField {
     }, 0) * this.intensity;
   }
 
-  /** @returns {number} */
-  getCurrentGravity() {
+  /**
+   * @param {boolean} isInverted
+   * @returns {number}
+   */
+  getCurrentGravity(isInverted = false) {
     const perturbation = this.calculatePerturbation();
-    return this.baseGravity * (1 + perturbation);
+    const gravity = this.baseGravity * (1 + perturbation);
+    return isInverted ? -gravity : gravity;
   }
 
   /** @returns {number} */
@@ -165,6 +174,8 @@ class StickmanPhysics {
 
     // World pulse state
     this.lastWorldPulseTime = this.determinismProvider.now();
+    this.pulseEndTime = 0;
+    this.burstEndTime = 0;
   }
 
   /**
@@ -194,8 +205,12 @@ class StickmanPhysics {
   setupPhysicsHooks() {
     // Harmonic Madness Field update
     Events.on(this.engine, 'beforeUpdate', (event) => {
-      this.madnessField.update(event.delta, this.stickmen.length);
-      this.engine.gravity.y = this.madnessField.getCurrentGravity();
+      const now = this.determinismProvider.now();
+      const isBursting = this.burstEndTime > 0 && now < this.burstEndTime;
+      const isInverted = this.pulseEndTime > 0 && now < this.pulseEndTime;
+
+      this.madnessField.update(event.delta, this.stickmen.length, isBursting);
+      this.engine.gravity.y = this.madnessField.getCurrentGravity(isInverted);
     });
 
     // Collision-based limb detachment
@@ -357,10 +372,6 @@ class StickmanPhysics {
     this.lastBurst = now;
 
     console.log("[PhysicsEngine] DELUSION BURST ACTIVATED");
-    
-    // Temporary overdrive
-    const oldIntensity = this.madnessField.intensity;
-    this.madnessField.intensity = 2.0;
 
     // Apply impulse to all entities
     for (let sm of this.stickmen) {
@@ -370,9 +381,7 @@ class StickmanPhysics {
         });
     }
 
-    setTimeout(() => {
-      this.madnessField.intensity = oldIntensity;
-    }, 3000);
+    this.burstEndTime = now + 3000;
   }
 
   /**
@@ -388,8 +397,7 @@ class StickmanPhysics {
 
   triggerWorldPulse() {
     console.log("[PhysicsEngine] WORLD PULSE: Gravity inverted");
-    this.engine.gravity.y *= -1;
-    setTimeout(() => { this.engine.gravity.y *= -1; }, 5000);
+    this.pulseEndTime = this.determinismProvider.now() + 5000;
   }
 
   /**

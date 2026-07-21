@@ -107,7 +107,12 @@ export class LimbDetachmentService extends LogicChainBase {
           throw new InsufficientImpulseError(limbId, impulse, this.threshold);
         }
 
-        return targetLimb;
+        // Return a safe projection to prevent circular JSON serialization crashes
+        // from Matter.js Body and Constraint objects when logging the outbox event
+        return {
+          attached: targetLimb.attached,
+          bodyLabel: targetLimb.body ? targetLimb.body.label : limbId
+        };
       });
 
       // 2. Side Effect Calculation (Traits/Delusions)
