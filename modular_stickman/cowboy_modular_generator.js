@@ -28,19 +28,6 @@ const LINE_WIDTH = 2 * SCALE;
 
 const ANIMATIONS = ["walk", "shoot", "bar_fight", "jump", "wave", "moonwalk"];
 
-/**
- * Helper to create canvas in any environment.
- */
-function createUniversalCanvas(w, h) {
-    if (typeof document !== 'undefined') {
-        const c = document.createElement('canvas');
-        c.width = w;
-        c.height = h;
-        return c;
-    }
-    return nodeCanvas(w, h);
-}
-
 function mulberry32(seed) {
   return function () {
     let t = (seed += 0x6d2b79f5);

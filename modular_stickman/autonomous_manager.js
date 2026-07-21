@@ -38,11 +38,11 @@ export class AutonomousManager {
 
     /**
      * Checks if a generation event should be triggered.
-     * @param {number} currentTime
+     * @param {number} deltaTime - Time elapsed since last frame in milliseconds.
      * @param {number} stickmanCount
      * @returns {boolean}
      */
-    checkTrigger(currentTime, stickmanCount) {
+    checkTrigger(deltaTime, stickmanCount) {
         if (!this.config.active) return false;
 
         // Probability scales inversely with current stickman count to prevent performance collapse
@@ -53,7 +53,9 @@ export class AutonomousManager {
             return acc * mapping.weight;
         }, 1.0);
 
-        const probability = dynamicRate * symbolicValue;
+        // Convert base rate (per second) to rate per frame based on deltaTime
+        const probabilityPerMs = (dynamicRate * symbolicValue) / 1000;
+        const probability = probabilityPerMs * deltaTime;
 
         // Use deterministic provider for trigger check
         return this.determinismProvider.random() < probability;
