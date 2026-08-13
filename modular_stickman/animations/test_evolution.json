@@ -1,0 +1,346 @@
+{
+  "name": "test_evolution",
+  "frameCount": 12,
+  "frames": [
+    {
+      "frame": 0,
+      "bodyParts": {
+        "rightArm": {
+          "angle": 34,
+          "length": 18
+        },
+        "leftArm": {
+          "angle": -34,
+          "length": 18
+        },
+        "rightLeg": {
+          "angle": 0,
+          "length": 20
+        },
+        "leftLeg": {
+          "angle": 0,
+          "length": 20
+        },
+        "body": {
+          "verticalOffset": 0,
+          "lean": -2.68
+        },
+        "head": {
+          "tilt": -0.02
+        }
+      }
+    },
+    {
+      "frame": 1,
+      "bodyParts": {
+        "rightArm": {
+          "angle": 31,
+          "length": 18
+        },
+        "leftArm": {
+          "angle": -31,
+          "length": 18
+        },
+        "rightLeg": {
+          "angle": 9,
+          "length": 20
+        },
+        "leftLeg": {
+          "angle": -9,
+          "length": 20
+        },
+        "body": {
+          "verticalOffset": 1.3,
+          "lean": -2.32
+        },
+        "head": {
+          "tilt": -0.72
+        }
+      }
+    },
+    {
+      "frame": 2,
+      "bodyParts": {
+        "rightArm": {
+          "angle": 20,
+          "length": 18
+        },
+        "leftArm": {
+          "angle": -20,
+          "length": 18
+        },
+        "rightLeg": {
+          "angle": 16,
+          "length": 20
+        },
+        "leftLeg": {
+          "angle": -16,
+          "length": 20
+        },
+        "body": {
+          "verticalOffset": 2.24,
+          "lean": -1.34
+        },
+        "head": {
+          "tilt": -1.23
+        }
+      }
+    },
+    {
+      "frame": 3,
+      "bodyParts": {
+        "rightArm": {
+          "angle": 4,
+          "length": 18
+        },
+        "leftArm": {
+          "angle": -4,
+          "length": 18
+        },
+        "rightLeg": {
+          "angle": 18,
+          "length": 20
+        },
+        "leftLeg": {
+          "angle": -18,
+          "length": 20
+        },
+        "body": {
+          "verticalOffset": 2.59,
+          "lean": 0.01
+        },
+        "head": {
+          "tilt": -1.41
+        }
+      }
+    },
+    {
+      "frame": 4,
+      "bodyParts": {
+        "rightArm": {
+          "angle": -14,
+          "length": 18
+        },
+        "leftArm": {
+          "angle": 14,
+          "length": 18
+        },
+        "rightLeg": {
+          "angle": 16,
+          "length": 20
+        },
+        "leftLeg": {
+          "angle": -16,
+          "length": 20
+        },
+        "body": {
+          "verticalOffset": 2.24,
+          "lean": 1.35
+        },
+        "head": {
+          "tilt": -1.21
+        }
+      }
+    },
+    {
+      "frame": 5,
+      "bodyParts": {
+        "rightArm": {
+          "angle": -28,
+          "length": 18
+        },
+        "leftArm": {
+          "angle": 28,
+          "length": 18
+        },
+        "rightLeg": {
+          "angle": 9,
+          "length": 20
+        },
+        "leftLeg": {
+          "angle": -9,
+          "length": 20
+        },
+        "body": {
+          "verticalOffset": 1.3,
+          "lean": 2.33
+        },
+        "head": {
+          "tilt": -0.69
+        }
+      }
+    },
+    {
+      "frame": 6,
+      "bodyParts": {
+        "rightArm": {
+          "angle": -34,
+          "length": 18
+        },
+        "leftArm": {
+          "angle": 34,
+          "length": 18
+        },
+        "rightLeg": {
+          "angle": 0,
+          "length": 20
+        },
+        "leftLeg": {
+          "angle": 0,
+          "length": 20
+        },
+        "body": {
+          "verticalOffset": 0,
+          "lean": 2.68
+        },
+        "head": {
+          "tilt": 0.02
+        }
+      }
+    },
+    {
+      "frame": 7,
+      "bodyParts": {
+        "rightArm": {
+          "angle": -31,
+          "length": 18
+        },
+        "leftArm": {
+          "angle": 31,
+          "length": 18
+        },
+        "rightLeg": {
+          "angle": -9,
+          "length": 20
+        },
+        "leftLeg": {
+          "angle": 9,
+          "length": 20
+        },
+        "body": {
+          "verticalOffset": -1.3,
+          "lean": 2.32
+        },
+        "head": {
+          "tilt": 0.72
+        }
+      }
+    },
+    {
+      "frame": 8,
+      "bodyParts": {
+        "rightArm": {
+          "angle": -20,
+          "length": 18
+        },
+        "leftArm": {
+          "angle": 20,
+          "length": 18
+        },
+        "rightLeg": {
+          "angle": -16,
+          "length": 20
+        },
+        "leftLeg": {
+          "angle": 16,
+          "length": 20
+        },
+        "body": {
+          "verticalOffset": -2.24,
+          "lean": 1.34
+        },
+        "head": {
+          "tilt": 1.23
+        }
+      }
+    },
+    {
+      "frame": 9,
+      "bodyParts": {
+        "rightArm": {
+          "angle": -4,
+          "length": 18
+        },
+        "leftArm": {
+          "angle": 4,
+          "length": 18
+        },
+        "rightLeg": {
+          "angle": -18,
+          "length": 20
+        },
+        "leftLeg": {
+          "angle": 18,
+          "length": 20
+        },
+        "body": {
+          "verticalOffset": -2.59,
+          "lean": -0.01
+        },
+        "head": {
+          "tilt": 1.41
+        }
+      }
+    },
+    {
+      "frame": 10,
+      "bodyParts": {
+        "rightArm": {
+          "angle": 14,
+          "length": 18
+        },
+        "leftArm": {
+          "angle": -14,
+          "length": 18
+        },
+        "rightLeg": {
+          "angle": -16,
+          "length": 20
+        },
+        "leftLeg": {
+          "angle": 16,
+          "length": 20
+        },
+        "body": {
+          "verticalOffset": -2.24,
+          "lean": -1.35
+        },
+        "head": {
+          "tilt": 1.21
+        }
+      }
+    },
+    {
+      "frame": 11,
+      "bodyParts": {
+        "rightArm": {
+          "angle": 28,
+          "length": 18
+        },
+        "leftArm": {
+          "angle": -28,
+          "length": 18
+        },
+        "rightLeg": {
+          "angle": -9,
+          "length": 20
+        },
+        "leftLeg": {
+          "angle": 9,
+          "length": 20
+        },
+        "body": {
+          "verticalOffset": -1.3,
+          "lean": -2.33
+        },
+        "head": {
+          "tilt": 0.69
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "generator": "AnimationEvolver v1.0",
+    "fitness": 94.74953437317308
+  }
+}

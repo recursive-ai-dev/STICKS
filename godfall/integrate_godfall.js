@@ -1,13 +1,9 @@
 #!/usr/bin/env node
-// integrate_godfall.js
-// Lightweight, non-invasive integration helper for Godfall to invoke existing
-// stickman character and environment generators. This script spawns node
-// processes for the original generators and passes-through any args.
-//
-// Usage examples:
-//   node integrate_godfall.js list
-//   node integrate_godfall.js generate --target=cowboy_characters
-//   node integrate_godfall.js generate --target=cowboy_environment
+/**
+ * integrate_godfall.js
+ * Lightweight, non-invasive integration helper for Godfall to invoke existing
+ * stickman character and environment generators.
+ */
 
 import { spawn } from "child_process";
 import path from "path";
@@ -17,11 +13,11 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Known generator entry points (non-invasive mapping)
+// Known generator entry points
 const generators = {
   cowboy_characters: {
     script: path.join(__dirname, "..", "stickemup_character_generator", "cowboy", "cowboy_stickmen_generator.js"),
-    desc: "Generate cowboy stickmen sprites (commonjs)"
+    desc: "Generate cowboy stickmen sprites"
   },
   cowboy_apng_characters: {
     script: path.join(__dirname, "..", "stickemup_character_generator", "cowboy", "cowboy_apng_generator.js"),
@@ -29,60 +25,61 @@ const generators = {
   },
   medieval_characters: {
     script: path.join(__dirname, "..", "stickemup_character_generator", "medieval", "medieval_stickmen_generator.js"),
-    desc: "Generate medieval stickmen sprites (CommonJS)"
+    desc: "Generate medieval stickmen sprites"
   },
   modular_cowboy: {
     script: path.join(__dirname, "..", "modular_stickman", "cowboy_modular_generator.js"),
-    desc: "Modular ESM generator (may require node ESM support)"
+    desc: "Modular cowboy generator"
+  },
+  sci_fi: {
+    script: path.join(__dirname, "..", "modular_stickman", "sci_fi_stickmen_generator.js"),
+    desc: "Sci-Fi themed generator"
   },
   cowboy_environment: {
     script: path.join(__dirname, "..", "stickemup_environment_generator", "cowboy", "cowboy_environment_generator.js"),
-    desc: "Generate cowboy environment elements (commonjs)"
-  },
-  cowboy_apng_environment: {
-    script: path.join(__dirname, "..", "stickemup_environment_generator", "cowboy", "cowboy_apng_generator.js"),
-    desc: "Create APNGs from environment frames"
+    desc: "Generate cowboy environment elements"
   }
 };
 
-// Post-processor to theme outputs for Godfall
-const postProcessor = {
+const postProcessors = {
   apply_theme: {
     script: path.join(__dirname, "apply_godfall_theme.js"),
-    desc: 'Apply Godfall visual theme to generated PNGs (CommonJS)'
+    desc: 'Apply Godfall visual theme'
+  },
+  apply_style: {
+    script: path.join(__dirname, "apply_godfall_style.js"),
+    desc: 'Apply Godfall style overlays'
   }
 };
 
-// Stronger style post-processor (composes overlays, accessories, veins)
-postProcessor.apply_style = {
-  script: path.join(__dirname, "apply_godfall_style.js"),
-  desc: 'Apply Godfall style overlays (auras/veins/accessories) to sprites (CommonJS)'
-};
-
-function listGenerators() {
-  console.log("Available generators:\n");
+/**
+ * Lists all available tools.
+ */
+function listTools() {
+  console.log("=== Godfall Integration Hub ===\n");
+  console.log("Available Generators:");
   for (const [key, info] of Object.entries(generators)) {
     const exists = fs.existsSync(info.script);
-    console.log(`- ${key}: ${info.desc} -> ${info.script} ${exists ? "(found)" : "(missing)"}`);
+    console.log(`- ${key.padEnd(20)}: ${info.desc} ${exists ? "✅" : "❌"}`);
   }
-  console.log('\nPost-processors:');
-  for (const [key, info] of Object.entries(postProcessor)) {
+  console.log('\nPost-Processors:');
+  for (const [key, info] of Object.entries(postProcessors)) {
     const exists = fs.existsSync(info.script);
-    console.log(`- ${key}: ${info.desc} -> ${info.script} ${exists ? "(found)" : "(missing)"}`);
+    console.log(`- ${key.padEnd(20)}: ${info.desc} ${exists ? "✅" : "❌"}`);
   }
-  console.log('\nGodfall convenience targets:');
-  console.log('- godfall_characters  : run character generation then apply Godfall style');
-  console.log('- godfall_environment : run environment generation then apply Godfall style');
-  console.log("\nUse: node integrate_godfall.js generate --target=<name> [--...]\n");
+  console.log("\nUsage: node godfall/integrate_godfall.js generate --target=<name> [--in=...] [--out=...]");
 }
 
+/**
+ * Spawns a child process to run a script.
+ */
 function spawnScript(scriptPath, args = []) {
   return new Promise((resolve, reject) => {
     if (!fs.existsSync(scriptPath)) {
       return reject(new Error(`Script not found: ${scriptPath}`));
     }
     const nodeArgs = [scriptPath, ...args];
-    console.log(`Spawning: node ${nodeArgs.map(a => a.includes(' ') ? `"${a}"` : a).join(' ')}\n`);
+    console.log(`[Integrate] Spawning: node ${nodeArgs.join(' ')}`);
     const cp = spawn(process.execPath, nodeArgs, { stdio: 'inherit' });
     cp.on('close', (code) => {
       if (code === 0) return resolve(code);
@@ -92,6 +89,9 @@ function spawnScript(scriptPath, args = []) {
   });
 }
 
+/**
+ * Simple argument parser.
+ */
 function parseArgs(argv) {
   const out = { _: [] };
   for (let i = 0; i < argv.length; i++) {
@@ -112,125 +112,51 @@ async function main() {
   const cmd = argv._[0] || 'help';
 
   if (cmd === 'list' || cmd === 'help') {
-    listGenerators();
+    listTools();
     return;
   }
 
   if (cmd === 'generate') {
     const target = argv.target || argv.t;
     if (!target) {
-      console.error('Missing --target argument. Run `node integrate_godfall.js list` to see options.');
+      console.error('[Integrate] Missing --target. Run list for options.');
       process.exit(1);
     }
-    if (target === 'all') {
-      // Run all available generators sequentially (safe order)
-      for (const key of Object.keys(generators)) {
-        const g = generators[key];
-        if (!fs.existsSync(g.script)) {
-          console.warn(`Skipping ${key}: script not found (${g.script})`);
-          continue;
-        }
-        try {
-          await spawnScript(g.script, []);
-        } catch (err) {
-          console.error(`Generator ${key} failed: ${err.message}`);
-        }
-      }
-      // After raw generation, apply Godfall theme to both characters and environment if outputs exist
-      try {
-        if (fs.existsSync(postProcessor.apply_theme.script)) {
-          // Default: look in cowboy outputs; user can override --in/--out
-          await spawnScript(postProcessor.apply_theme.script, []);
-        }
-      } catch (err) {
-        console.error('Post-processing failed:', err.message);
-      }
-      return;
-    }
-    // Special convenience targets for Godfall-themed outputs
-    if (target === 'godfall_characters') {
-      // Run character generators then apply theme
-      // Run all available character generators (cowboy + medieval + modular if present)
-      const charGens = [generators.cowboy_characters, generators.medieval_characters, generators.modular_cowboy, generators.cowboy_apng_characters, generators.cowboy_apng_characters].filter(Boolean);
-      try {
-        for (const g of charGens) {
-          if (g && fs.existsSync(g.script)) await spawnScript(g.script, []);
-        }
-        // After generation, apply a stronger Godfall style (prefer overlays that add class/race cues)
-        const styleArgs = [];
-        if (argv.in) styleArgs.push(`--in=${argv.in}`);
-        if (argv.out) styleArgs.push(`--out=${argv.out}`);
-        if (argv.theme) styleArgs.push(`--theme=${argv.theme}`);
-        // Use provided manifest, or default to the repository 96-entry manifest if present
-        const defaultManifest = path.join(__dirname, 'god_manifest_96.json');
-        if (argv.manifest) styleArgs.push(`--manifest=${argv.manifest}`);
-        else if (fs.existsSync(defaultManifest)) styleArgs.push(`--manifest=${defaultManifest}`);
-        // Prefer apply_style if available, fall back to apply_theme
-        if (postProcessor.apply_style && fs.existsSync(postProcessor.apply_style.script)) {
-          await spawnScript(postProcessor.apply_style.script, styleArgs);
-        } else if (postProcessor.apply_theme && fs.existsSync(postProcessor.apply_theme.script)) {
-          await spawnScript(postProcessor.apply_theme.script, styleArgs);
-        }
-        console.log('Godfall character generation complete.');
-      } catch (err) {
-        console.error('godfall_characters failed:', err.message);
-        process.exit(4);
-      }
-      return;
-    }
-    if (target === 'godfall_environment') {
-      // Run environment generators (cowboy environment + modular if exists)
-      const envGens = [generators.cowboy_environment, generators.cowboy_apng_environment].filter(Boolean);
-      try {
-        for (const g of envGens) {
-          if (g && fs.existsSync(g.script)) await spawnScript(g.script, []);
-        }
-        const styleArgs = [];
-        if (argv.in) styleArgs.push(`--in=${argv.in}`);
-        if (argv.out) styleArgs.push(`--out=${argv.out}`);
-        if (argv.theme) styleArgs.push(`--theme=${argv.theme}`);
-    const defaultManifest = path.join(__dirname, 'god_manifest_96.json');
-    if (argv.manifest) styleArgs.push(`--manifest=${argv.manifest}`);
-    else if (fs.existsSync(defaultManifest)) styleArgs.push(`--manifest=${defaultManifest}`);
-        if (postProcessor.apply_style && fs.existsSync(postProcessor.apply_style.script)) {
-          await spawnScript(postProcessor.apply_style.script, styleArgs);
-        } else if (postProcessor.apply_theme && fs.existsSync(postProcessor.apply_theme.script)) {
-          await spawnScript(postProcessor.apply_theme.script, styleArgs);
-        }
-        console.log('Godfall environment generation complete.');
-      } catch (err) {
-        console.error('godfall_environment failed:', err.message);
-        process.exit(5);
-      }
-      return;
-    }
-    const gen = generators[target];
-    if (!gen) {
-      console.error(`Unknown target: ${target}. Run list to see available targets.`);
-      process.exit(2);
-    }
-    try {
-      // Pass through any extra args (keep same format)
-      const passthrough = [];
-      for (const [k, v] of Object.entries(argv)) {
-        if (k === '_' ) continue;
-        if (k === 'target') continue;
-        if (v === true) passthrough.push(`--${k}`);
-        else passthrough.push(`--${k}=${v}`);
-      }
-      await spawnScript(gen.script, passthrough);
-      console.log(`Generator ${target} completed.`);
-    } catch (err) {
-      console.error(`Generator failed: ${err.message}`);
-      process.exit(3);
-    }
-    return;
-  }
 
-  listGenerators();
+    // Handle "all" or specific target
+    const targets = target === 'all' ? Object.keys(generators) : [target];
+
+    for (const t of targets) {
+      const gen = generators[t];
+      if (!gen) {
+        console.warn(`[Integrate] Unknown target: ${t}`);
+        continue;
+      }
+
+      try {
+        const passthrough = [];
+        for (const [k, v] of Object.entries(argv)) {
+          if (k === '_' || k === 'target' || k === 't') continue;
+          passthrough.push(v === true ? `--${k}` : `--${k}=${v}`);
+        }
+        await spawnScript(gen.script, passthrough);
+      } catch (err) {
+        console.error(`[Integrate] Generator ${t} failed:`, err.message);
+      }
+    }
+
+    // Automatic post-processing if requested
+    if (argv.theme) {
+        try {
+            await spawnScript(postProcessors.apply_theme.script, [`--theme=${argv.theme}`]);
+        } catch (e) {
+            console.error("[Integrate] Theme post-processing failed.");
+        }
+    }
+  }
 }
 
 main().catch(err => {
-  console.error(err);
+  console.error("[Integrate] Fatal Error:", err);
   process.exit(10);
 });

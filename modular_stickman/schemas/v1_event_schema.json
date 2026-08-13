@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_name",
+    "event_version",
+    "occurred_at",
+    "correlation_id",
+    "producer",
+    "payload"
+  ],
+  "properties": {
+    "event_id": { "type": "string" },
+    "event_name": { "type": "string" },
+    "event_version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "correlation_id": { "type": "string" },
+    "causal_event_id": { "type": ["string", "null"] },
+    "producer": { "type": "string" },
+    "payload": { "type": "object" }
+  }
+}

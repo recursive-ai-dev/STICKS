@@ -1,14 +1,24 @@
 {
+  "name": "sticks-godfall-echoes",
+  "version": "1.0.0",
+  "description": "A physics-driven stickman chaos game",
   "type": "module",
+  "main": "modular_stickman/game.js",
   "dependencies": {
-    "canvas": "3.1.2",
+    "canvas": "^3.1.2",
     "matter-js": "^0.20.0",
     "upng-js": "2.1.0"
   },
   "scripts": {
+    "start": "pnpm dlx serve . -l 8080",
+    "dev": "pnpm run start",
+    "build": "echo 'No build step required for this ESM project.'",
+    "demo": "pnpm dlx serve modular_stickman/ -l 8080",
     "generate:moonwalk": "node modular_stickman/procedural_animation_generator.js moonwalk",
-    "start": "pnpm dlx serve . --port 8080",
-    "demo": "pnpm dlx serve modular_stickman/ --port 8080",
-    "ux:generate": "node ux/run_ux_systems.js"
+    "ux:generate": "node ux/run_ux_systems.js",
+    "test": "node modular_stickman/tests/limb_detachment.test.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
   }
 }

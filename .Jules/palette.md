@@ -1,3 +1,4 @@
-## 2026-03-01 - [Initial UX Audit]
-**Learning:** Found that the main landing page and demo page lack focus indicators for keyboard navigation, and the dynamic "World Pulse" notification is not announced to screen readers.
-**Action:** Implement focus-visible styles for interactive elements and add ARIA live regions for dynamic game events.
+
+## 2024-05-20 - [Developer Debugger UI]
+**Learning:** Real-time event streams (Outbox) require high-contrast overlays (0.9 opacity black) and monospace fonts for readability in chaotic physics environments.
+**Action:** Use 'aria-live="polite"' for logic consoles and provide explicit keyboard shortcuts in the UI controls list for accessibility.

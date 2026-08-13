@@ -30,7 +30,7 @@ A physics-driven stickman chaos game built on modular animation and divine delir
 
 ```
 STICKS-main/
-├── index.html                # Main landing page
+├── index.html                # Main landing page (Entry Point)
 ├── modular_stickman/         # Core game components
 │   ├── animations/           # Procedural animation data (walk, moonwalk, bar_fight, etc.)
 │   ├── tests/                # Physics and logic chain tests
@@ -61,23 +61,37 @@ STICKS-main/
 
 ### Prerequisites
 - Node.js v16+
-- npm
+- pnpm (Preferred)
 
 ### Installation
 ```bash
-npm install
+pnpm install
 ```
 
-### Running the Demo
+### Build
+No explicit build step is required for this ESM project. However, you can run:
 ```bash
-npm run demo
+pnpm run build
+```
+
+### Running the App
+The application can be started using the following command:
+```bash
+pnpm run start
+```
+Then open your browser to `http://localhost:8080/index.html`.
+
+To run the interactive physics demo directly:
+```bash
+pnpm run demo
 ```
 Then open your browser to `http://localhost:8080/demo.html`.
 
 ### Development & Generation
-- **Start Web Server**: `npm start`
-- **Generate Moonwalk Animation**: `npm run generate:moonwalk`
+- **Start Web Server**: `pnpm run dev`
+- **Generate Moonwalk Animation**: `pnpm run generate:moonwalk`
 - **Integrate Godfall**: `node godfall/integrate_godfall.js list`
+- **Run Tests**: `pnpm test`
 
 ## 🎯 Key Features
 

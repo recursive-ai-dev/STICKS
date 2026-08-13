@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STICKMAN GENERATOR HUB - All Character Types</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0a0a1a; color: #fff; overflow-x: hidden; }
+        .header { text-align: center; padding: 60px 20px; background: rgba(0,0,0,0.5); }
+        .main-title { font-size: 3rem; background: linear-gradient(90deg, #ff6b6b, #48dbfb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-tabs { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
+        .tab-btn { padding: 12px 24px; border: none; border-radius: 8px; background: #222; color: #fff; cursor: pointer; transition: all 0.3s ease; }
+        .tab-btn:hover { background: #333; }
+        .tab-btn.active { background: #48dbfb; color: #000; font-weight: bold; }
+        .content { max-width: 1200px; margin: 0 auto; padding: 20px; min-height: 600px; }
+        .character-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .character-card { background: #1a1a2e; border: 1px solid #333; padding: 20px; border-radius: 12px; transition: transform 0.3s ease; }
+        .character-card:hover { transform: translateY(-5px); border-color: #48dbfb; }
+        .char-preview { height: 180px; background: #050505; margin-bottom: 15px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid #222; position: relative; overflow: hidden; }
+        .char-name { font-size: 1.3rem; margin-bottom: 5px; color: #48dbfb; }
+        .char-type { color: #888; font-size: 0.9rem; margin-bottom: 15px; display: block; text-transform: uppercase; letter-spacing: 1px; }
+        .action-btn { width: 100%; padding: 12px; border-radius: 6px; border: none; background: #48dbfb; color: #000; font-weight: bold; cursor: pointer; transition: background 0.3s ease; }
+        .action-btn:hover { background: #00f5ff; }
+        .section { display: none; }
+        .section.active { display: block; }
+        canvas { max-width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 class="main-title">CHARACTER GENERATION HUB</h1>
+        <p>Select a genre to begin procedural synthesis</p>
+    </header>
+
+    <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="cowboy">🤠 Cowboy</button>
+        <button class="tab-btn" data-tab="medieval">⚔️ Medieval</button>
+        <button class="tab-btn" data-tab="scifi">🚀 Sci-Fi</button>
+    </nav>
+
+    <main class="content">
+        <section id="section-cowboy" class="section active">
+            <div class="character-grid" id="grid-cowboy"></div>
+        </section>
+        <section id="section-medieval" class="section">
+            <div class="character-grid" id="grid-medieval"></div>
+        </section>
+        <section id="section-scifi" class="section">
+            <div class="character-grid" id="grid-scifi"></div>
+        </section>
+    </main>
+
+    <!-- Stub implementations for rendering since we are in a browser environment -->
+    <script type="module">
+        import { renderStickSciFi, buildTraits as buildSciFiTraits } from './modular_stickman/sci_fi_stickmen_generator.js';
+        import { renderStickCowperson, buildTraits as buildCowboyTraits } from './modular_stickman/cowboy_modular_generator.js';
+
+        const characterData = {
+            cowboy: [
+                { id: 1, name: "Sheriff Colt", type: "cowboy", hat: "cowboy", bandana: true },
+                { id: 2, name: "Bandit Jake", type: "cowboy", hat: "cowboy", bandana: false },
+                { id: 7, name: "Elara West", type: "cowgirl", bonnet: true }
+            ],
+            medieval: [
+                { id: 101, name: "Sir Valorian", class: "knight", armor: "heavy" },
+                { id: 102, name: "Archer Elara", class: "ranger", armor: "light" }
+            ],
+            scifi: [
+                { id: "sf1", name: "Unit-X", class: "soldier", helmet: "combat_helm", visor: true },
+                { id: "sf2", name: "Pilot Nova", class: "alien", helmet: "none", visor: false },
+                { id: "sf4", name: "Behemoth", class: "juggernaut", helmet: "heavy_plate", visor: true }
+            ]
+        };
+
+        function renderGrid(type) {
+            const grid = document.getElementById(`grid-${type}`);
+            grid.innerHTML = characterData[type].map(char => `
+                <div class="character-card">
+                    <div class="char-preview">
+                        <canvas id="prev-${type}-${char.id}" width="100" height="100"></canvas>
+                    </div>
+                    <h3 class="char-name">${char.name}</h3>
+                    <span class="char-type">${type}</span>
+                    <button class="action-btn">GENERATE</button>
+                </div>
+            `).join('');
+
+            // After injection, trigger rendering for each canvas
+            characterData[type].forEach(char => {
+                const canvas = document.getElementById(`prev-${type}-${char.id}`);
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+
+                if (type === 'scifi') {
+                    const traits = buildSciFiTraits(char);
+                    renderStickSciFi(ctx, char, 0, 'right', traits, 'walk', 0);
+                } else if (type === 'cowboy') {
+                    const traits = buildCowboyTraits(char);
+                    renderStickCowperson(ctx, char, 0, 'right', traits, 'walk', 0);
+                } else {
+                    // Placeholder for Medieval until integrated
+                    ctx.fillStyle = '#444';
+                    ctx.beginPath(); ctx.arc(50, 40, 15, 0, Math.PI*2); ctx.fill();
+                    ctx.fillRect(45, 55, 10, 30);
+                }
+            });
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                btn.classList.add('active');
+                const tab = btn.dataset.tab;
+                document.getElementById(`section-${tab}`).classList.add('active');
+                renderGrid(tab);
+            };
+        });
+
+        // Initial render
+        renderGrid('cowboy');
+    </script>
+</body>
+</html>
