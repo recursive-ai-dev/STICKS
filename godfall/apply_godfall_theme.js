@@ -91,6 +91,8 @@ async function processFile(file) {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
     const buf = canvas.toBuffer('image/png');
     fs.writeFileSync(outPath, buf);
+    canvas.width = 0;
+    canvas.height = 0;
     console.log(`[GodfallTheme] Processed: ${rel}`);
   } catch (err) {
     console.error(`[GodfallTheme] Failed to process ${file}:`, err.message);
