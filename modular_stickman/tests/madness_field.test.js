@@ -58,7 +58,7 @@ function testMadnessField() {
     // 2. Update with stickmen
     console.log('Test 2: Update intensity');
     field.update(16.6, 3); // 16.6ms, 3 stickmen
-    if (field.intensity === 0.5 && field.time === 16.6) {
+    if (Math.abs(field.intensity - 0.5) < 0.0001 && Math.abs(field.time - 16.6) < 0.0001) {
         console.log('✅ PASS: Intensity and time updated correctly.');
     } else {
         console.error('❌ FAIL: Update incorrect.', field);

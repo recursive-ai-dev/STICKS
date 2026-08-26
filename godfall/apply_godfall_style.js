@@ -129,6 +129,8 @@ async function styleSprite(file) {
     const outDir = path.dirname(outPath);
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(outPath, canvas.toBuffer('image/png'));
+    canvas.width = 0;
+    canvas.height = 0;
     console.log(`[GodfallStyle] Styled: ${rel}`);
   } catch (err) {
     console.error(`[GodfallStyle] Failed to style ${file}:`, err.message);
