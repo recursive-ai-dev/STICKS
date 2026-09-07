@@ -93,11 +93,13 @@ function spawnScript(scriptPath, args = []) {
  * Simple argument parser.
  */
 function parseArgs(argv) {
-  const out = { _: [] };
+  const out = Object.create(null);
+  out._ = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a.startsWith('--')) {
       const [k, v] = a.replace(/^--/, '').split('=');
+      if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
       if (v !== undefined) out[k] = v;
       else out[k] = argv[i+1] && !argv[i+1].startsWith('--') ? argv[++i] : true;
     } else {

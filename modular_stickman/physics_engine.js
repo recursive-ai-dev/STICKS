@@ -23,6 +23,8 @@ const {
 
 import { applyAnimationFrame } from './animation_renderer.js';
 import { LimbDetachmentService } from './limb_detachment_service.js';
+
+const WORLD_PULSE_INTERVAL_MS = 60000;
 import { RealWorldProvider } from './determinism_provider.js';
 
 /**
@@ -389,7 +391,7 @@ class StickmanPhysics {
    */
   updateWorldPulse() {
     const now = this.determinismProvider.now();
-    if (now - this.lastWorldPulseTime >= 60000) {
+    if (now - this.lastWorldPulseTime >= WORLD_PULSE_INTERVAL_MS) {
       this.lastWorldPulseTime = now;
       this.triggerWorldPulse();
     }
