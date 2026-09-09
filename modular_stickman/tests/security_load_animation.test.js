@@ -16,48 +16,52 @@ async function runTest() {
     if (!fs.existsSync(animDir)) fs.mkdirSync(animDir);
     fs.writeFileSync(path.join(animDir, 'test_anim.json'), JSON.stringify({ name: 'test' }));
 
-    const validResult = loadAnimation('test_anim');
-    if (validResult && validResult.name === 'test') {
-        console.log("✅ Valid animation loaded successfully.");
-    } else {
-        console.error("❌ Failed to load valid animation.");
-        process.exit(1);
+    try {
+        const validResult = loadAnimation('test_anim');
+        if (validResult && validResult.name === 'test') {
+            console.log("✅ Valid animation loaded successfully.");
+        } else {
+            console.error("❌ Failed to load valid animation.");
+            throw new Error("Failed to load valid animation");
+        }
+
+        // Test 2: Path traversal attempt (..)
+        console.log("\nTest 2: Path traversal attempt (..)");
+        const traversalResult = loadAnimation('../package');
+        if (traversalResult === null) {
+            console.log("✅ Path traversal (..) blocked.");
+        } else {
+            console.error("❌ Path traversal (..) was NOT blocked!");
+            throw new Error("Path traversal (..) was NOT blocked!");
+        }
+
+        // Test 3: Absolute path attempt (/)
+        console.log("\nTest 3: Path separator attempt (/)");
+        const slashResult = loadAnimation('subdir/test');
+        if (slashResult === null) {
+            console.log("✅ Path separator (/) blocked.");
+        } else {
+            console.error("❌ Path separator (/) was NOT blocked!");
+            throw new Error("Path separator (/) was NOT blocked!");
+        }
+
+        // Test 4: Backslash attempt (\)
+        console.log("\nTest 4: Backslash attempt (\\)");
+        const backslashResult = loadAnimation('subdir\\test');
+        if (backslashResult === null) {
+            console.log("✅ Backslash (\\) blocked.");
+        } else {
+            console.error("❌ Backslash (\\) was NOT blocked!");
+            throw new Error("Backslash (\\) was NOT blocked!");
+        }
+
+        console.log("\nAll security tests passed! 🎉");
+    } finally {
+        // Cleanup
+        try {
+            fs.unlinkSync(path.join(animDir, 'test_anim.json'));
+        } catch (e) {}
     }
-
-    // Test 2: Path traversal attempt (..)
-    console.log("\nTest 2: Path traversal attempt (..)");
-    const traversalResult = loadAnimation('../package');
-    if (traversalResult === null) {
-        console.log("✅ Path traversal (..) blocked.");
-    } else {
-        console.error("❌ Path traversal (..) was NOT blocked!");
-        process.exit(1);
-    }
-
-    // Test 3: Absolute path attempt (/)
-    console.log("\nTest 3: Path separator attempt (/)");
-    const slashResult = loadAnimation('subdir/test');
-    if (slashResult === null) {
-        console.log("✅ Path separator (/) blocked.");
-    } else {
-        console.error("❌ Path separator (/) was NOT blocked!");
-        process.exit(1);
-    }
-
-    // Test 4: Backslash attempt (\)
-    console.log("\nTest 4: Backslash attempt (\\)");
-    const backslashResult = loadAnimation('subdir\\test');
-    if (backslashResult === null) {
-        console.log("✅ Backslash (\\) blocked.");
-    } else {
-        console.error("❌ Backslash (\\) was NOT blocked!");
-        process.exit(1);
-    }
-
-    console.log("\nAll security tests passed! 🎉");
-
-    // Cleanup
-    fs.unlinkSync(path.join(animDir, 'test_anim.json'));
 }
 
 runTest().catch(err => {
